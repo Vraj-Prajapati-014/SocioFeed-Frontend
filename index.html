@@ -8,6 +8,12 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+  const savedTheme = localStorage.getItem('themeMode');
+  if (savedTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  }
+</script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

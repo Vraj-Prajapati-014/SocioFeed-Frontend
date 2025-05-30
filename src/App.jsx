@@ -1,11 +1,55 @@
-import './App.css';
+import { useEffect, useState } from 'react';
+import { ThemeProvider } from '@mui/material/styles';
+import { ToastContainer } from 'react-toastify';
+import { useSelector, useDispatch } from 'react-redux';
+import { setTheme } from './store/slices/themeSlice';
+import { getMeAsync } from './features/auth/slices/authSlice';
+// import { useNavigate } from 'react-router-dom';
+// import { routeConstants } from './features/auth/constants/routeConstants';
+import ThemeContext from './utils/context/ThemeContext';
+import { lightTheme, darkTheme } from './styles/theme';
+import ThemeToggle from './components/common/ThemeToggle/ThemeToggle';
+import AppRoutes from './AppRoutes';
+import './styles/globals.css';
+import 'react-toastify/dist/ReactToastify.css';
+import './styles/toastify.css';
 
 function App() {
+  const dispatch = useDispatch();
+  const themeMode = useSelector(state => state.theme.mode);
+  // const { loading } = useSelector((state) => state.auth);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('themeMode') || 'light';
+    if (savedTheme !== themeMode) {
+      dispatch(setTheme(savedTheme));
+    }
+
+    dispatch(getMeAsync()).then(result => {
+      setIsAuthChecked(true);
+      console.log(result);
+    });
+  }, [dispatch, themeMode]);
+
   return (
-    <>
-      <h1>Vraj</h1>
-      <h2>git commit -m "[FEAT]:Husky+Eslint+Prettior+Tailwind Setup"</h2>
-    </>
+    <ThemeContext.Provider value={{ mode: themeMode }}>
+      <ThemeProvider theme={themeMode === 'light' ? lightTheme : darkTheme}>
+        <ToastContainer />
+        <div className="min-h-screen bg-background">
+          {!isAuthChecked ? (
+            <div className="flex items-center justify-center min-h-screen">
+              <p>Loading...</p>
+            </div>
+          ) : (
+            <>
+              <ThemeToggle className="p-4" />
+              <AppRoutes />
+            </>
+          )}
+        </div>
+      </ThemeProvider>
+    </ThemeContext.Provider>
   );
 }
 
