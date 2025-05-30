@@ -5,10 +5,11 @@ import { AUTH_CONSTANTS } from '../constants/authConstants';
 const initialState = {
   user: null,
   isAuthenticated: false,
+  isAuthChecked: false, // Added
   loading: false,
   errors: {},
   successMessage: '',
-  activationStatus: null, // Tracks if account is unactivated
+  activationStatus: null,
 };
 
 export const registerAsync = createAsyncThunk(
@@ -85,20 +86,24 @@ export const resetPasswordAsync = createAsyncThunk(
   }
 );
 
+export const logoutAsync = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
+  try {
+    const response = await axiosInstance.post(AUTH_CONSTANTS.AUTH_LOGOUT);
+    return response.data;
+  } catch (err) {
+    return rejectWithValue(err.response?.data || { message: 'Logout failed' });
+  }
+});
+
 export const getMeAsync = createAsyncThunk('auth/getMe', async (_, { rejectWithValue }) => {
   try {
     const res = await axiosInstance.get(AUTH_CONSTANTS.AUTH_ME);
     return res.data.user;
   } catch (err) {
-    if (err.response?.status === 401) {
-      try {
-        const refreshRes = await axiosInstance.post(AUTH_CONSTANTS.AUTH_REFRESH);
-        return refreshRes.data.user;
-      } catch (refreshErr) {
-        return rejectWithValue(refreshErr.response?.data?.message || 'Session expired');
-      }
-    }
-    return rejectWithValue(err.response?.data?.message || 'Something went wrong');
+    return rejectWithValue({
+      message: err.response?.data?.message || 'Something went wrong',
+      suppressToast: !err.response, // Suppress for network errors
+    });
   }
 });
 
@@ -110,11 +115,31 @@ const authSlice = createSlice({
       state.errors = {};
       state.successMessage = '';
       state.activationStatus = null;
+      state.user = null;
+      state.isAuthenticated = false;
+      state.isAuthChecked = false;
+    },
+    setAuthChecked: (state, action) => {
+      state.isAuthChecked = action.payload;
     },
   },
   extraReducers: builder => {
     builder
-      // Register
+      .addCase(logoutAsync.pending, state => {
+        state.loading = true;
+        state.errors = {};
+        state.successMessage = '';
+      })
+      .addCase(logoutAsync.fulfilled, state => {
+        state.loading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+        state.successMessage = 'Logged out successfully';
+      })
+      .addCase(logoutAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.errors = action.payload;
+      })
       .addCase(registerAsync.pending, state => {
         state.loading = true;
         state.errors = {};
@@ -128,7 +153,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.errors = action.payload;
       })
-      // Login
       .addCase(loginAsync.pending, state => {
         state.loading = true;
         state.errors = {};
@@ -148,7 +172,6 @@ const authSlice = createSlice({
           state.activationStatus = 'unactivated';
         }
       })
-      // Activate
       .addCase(activateAccountAsync.pending, state => {
         state.loading = true;
         state.errors = {};
@@ -164,7 +187,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.errors = action.payload;
       })
-      // Resend Activation
       .addCase(resendActivationAsync.pending, state => {
         state.loading = true;
         state.errors = {};
@@ -178,7 +200,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.errors = action.payload;
       })
-      // Forgot Password
       .addCase(forgotPasswordAsync.pending, state => {
         state.loading = true;
         state.errors = {};
@@ -192,7 +213,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.errors = action.payload;
       })
-      // Reset Password
       .addCase(resetPasswordAsync.pending, state => {
         state.loading = true;
         state.errors = {};
@@ -206,7 +226,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.errors = action.payload;
       })
-      // Get Me
       .addCase(getMeAsync.pending, state => {
         state.loading = true;
         state.errors = {};
@@ -220,10 +239,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
-        state.errors = { message: action.payload };
+        if (!action.payload.suppressToast) {
+          state.errors = { message: action.payload.message };
+        }
       });
   },
 });
 
-export const { clearMessages } = authSlice.actions;
+export const { clearMessages, setAuthChecked } = authSlice.actions;
 export default authSlice.reducer;

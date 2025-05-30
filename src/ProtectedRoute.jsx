@@ -6,7 +6,11 @@ function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return null; // App.jsx handles loading UI
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    ); // Added loading UI
   }
 
   if (!isAuthenticated) {

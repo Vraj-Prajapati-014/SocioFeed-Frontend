@@ -11,6 +11,7 @@ const AUTH_RESET_PASSWORD = '/auth/reset-password/:token';
 const AUTH_RESEND_ACTIVATION = '/auth/resend-activation';
 const AUTH_ME = '/auth/me';
 const AUTH_REFRESH = '/auth/refresh';
+const AUTH_LOGOUT = '/auth/logout';
 
 // Validation Constants
 const REGEX_USERNAME = /^[a-zA-Z0-9]+$/;
@@ -28,6 +29,7 @@ export const AUTH_CONSTANTS = {
   AUTH_RESET_PASSWORD,
   AUTH_RESEND_ACTIVATION,
   AUTH_ME,
+  AUTH_LOGOUT,
   REGEX_USERNAME,
   REGEX_PASSWORD,
   MIN_PASSWORD_LENGTH,

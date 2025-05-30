@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { ToastContainer } from 'react-toastify';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { setTheme } from './store/slices/themeSlice';
 import { getMeAsync } from './features/auth/slices/authSlice';
-// import { useNavigate } from 'react-router-dom';
-// import { routeConstants } from './features/auth/constants/routeConstants';
+import { routeConstants } from './features/auth/constants/routeConstants';
 import ThemeContext from './utils/context/ThemeContext';
 import { lightTheme, darkTheme } from './styles/theme';
 import ThemeToggle from './components/common/ThemeToggle/ThemeToggle';
@@ -16,8 +16,10 @@ import './styles/toastify.css';
 
 function App() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const themeMode = useSelector(state => state.theme.mode);
-  // const { loading } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useSelector(state => state.auth);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -31,6 +33,15 @@ function App() {
       console.log(result);
     });
   }, [dispatch, themeMode]);
+
+  useEffect(() => {
+    if (isAuthChecked && !isAuthenticated) {
+      const protectedRoutes = [routeConstants.ROUTE_DASHBOARD];
+      if (protectedRoutes.includes(location.pathname)) {
+        navigate(routeConstants.ROUTE_LOGIN, { replace: true });
+      }
+    }
+  }, [isAuthenticated, isAuthChecked, location.pathname, navigate]);
 
   return (
     <ThemeContext.Provider value={{ mode: themeMode }}>

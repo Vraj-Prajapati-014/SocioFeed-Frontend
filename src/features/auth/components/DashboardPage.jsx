@@ -1,17 +1,22 @@
-import Card from '../../../components/common/Card/Card';
-import useAuth from '../hooks/useAuth';
+import React from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { logoutAsync } from '../slices/authSlice';
+import { routeConstants } from '../constants/routeConstants';
 
 function DashboardPage() {
-  const { user } = useAuth();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await dispatch(logoutAsync());
+    navigate(routeConstants.ROUTE_LOGIN, { replace: true });
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="p-6 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">Welcome to the Dashboard</h2>
-        <p className="text-center text-foreground">
-          Hello, {user?.firstName || 'User'}! You have successfully logged in.
-        </p>
-      </Card>
+    <div>
+      <h1>Dashboard</h1>
+      <button onClick={handleLogout}>Logout</button>
     </div>
   );
 }
