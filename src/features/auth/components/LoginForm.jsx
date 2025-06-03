@@ -13,7 +13,9 @@ function LoginPage() {
   const [resendEmail, setResendEmail] = useState('');
 
   useEffect(() => {
+    // Clear auth state and sessionStorage on initial load
     dispatch(clearMessages());
+    sessionStorage.removeItem('isAuthenticated');
   }, [dispatch]);
 
   useEffect(() => {

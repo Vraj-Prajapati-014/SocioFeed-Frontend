@@ -25,6 +25,7 @@ const DynamicForm = ({
   const [formData, setFormData] = useState(initialValues);
   const [formErrors, setFormErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
+  console.log(isFormValid);
 
   useEffect(() => {
     if (successMessage) {
@@ -72,9 +73,9 @@ const DynamicForm = ({
   };
 
   return (
-    <Card className="p-6 w-full max-w-md">
+    <Card className="p-6 w-full">
       {additionalProps.title && (
-        <h2 className="text-2xl font-bold mb-4 text-center">{additionalProps.title}</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center text-white">{additionalProps.title}</h2>
       )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {config.fields?.map(field => (
@@ -88,21 +89,22 @@ const DynamicForm = ({
             value={formData[field.name]}
             onChange={handleChange}
             error={formErrors[field.name] || errors[field.name]}
+            className="text-gray-300 placeholder-gray-400"
           />
         ))}
         <Button
           type="submit"
           variant="primary"
           size="medium"
-          disabled={loading || !isFormValid}
-          className="mt-2"
+          disabled={loading} // Removed !isFormValid condition
+          className="mt-2 bg-gray-600 hover:bg-gray-700 text-white"
         >
           {loading ? <Spinner size="small" /> : config.submitButtonText}
         </Button>
       </form>
       {config.additionalLinks?.map((link, index) => (
         <p key={index} className="mt-4 text-center text-sm">
-          <a href={link.href} className="text-primary hover:underline">
+          <a href={link.href} className="text-purple-400 hover:underline">
             {link.text}
           </a>
         </p>

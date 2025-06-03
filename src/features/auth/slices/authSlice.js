@@ -5,7 +5,7 @@ import { AUTH_CONSTANTS } from '../constants/authConstants';
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isAuthChecked: false, // Added
+  isAuthChecked: false,
   loading: false,
   errors: {},
   successMessage: '',
@@ -27,6 +27,7 @@ export const registerAsync = createAsyncThunk(
 export const loginAsync = createAsyncThunk('auth/login', async (formData, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.post(AUTH_CONSTANTS.AUTH_LOGIN, formData);
+    sessionStorage.setItem('isAuthenticated', 'true');
     return response.data;
   } catch (err) {
     return rejectWithValue(err.response?.data || { message: 'Login failed' });
@@ -40,6 +41,7 @@ export const activateAccountAsync = createAsyncThunk(
       const response = await axiosInstance.post(
         AUTH_CONSTANTS.AUTH_ACTIVATE.replace(':token', token)
       );
+      sessionStorage.setItem('isAuthenticated', 'true');
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || { message: 'Activation failed' });
@@ -89,23 +91,61 @@ export const resetPasswordAsync = createAsyncThunk(
 export const logoutAsync = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.post(AUTH_CONSTANTS.AUTH_LOGOUT);
+    sessionStorage.removeItem('isAuthenticated');
     return response.data;
   } catch (err) {
     return rejectWithValue(err.response?.data || { message: 'Logout failed' });
   }
 });
 
-export const getMeAsync = createAsyncThunk('auth/getMe', async (_, { rejectWithValue }) => {
-  try {
-    const res = await axiosInstance.get(AUTH_CONSTANTS.AUTH_ME);
-    return res.data.user;
-  } catch (err) {
-    return rejectWithValue({
-      message: err.response?.data?.message || 'Something went wrong',
-      suppressToast: !err.response, // Suppress for network errors
-    });
+export const getMeAsync = createAsyncThunk(
+  'auth/getMe',
+  async (_, { rejectWithValue, dispatch }) => {
+    try {
+      // Check sessionStorage before making API call
+      if (sessionStorage.getItem('isAuthenticated') !== 'true') {
+        console.log('No authenticated session, skipping getMe API call'); // Debug log
+        dispatch(setAuthChecked(true)); // Ensure isAuthChecked is set
+        return null; // Resolve with null to indicate no user
+      }
+
+      console.log('Fetching user with getMe'); // Debug log
+      const res = await axiosInstance.get(AUTH_CONSTANTS.AUTH_ME);
+      sessionStorage.setItem('isAuthenticated', 'true');
+      return res.data.user;
+    } catch (err) {
+      console.error('getMe error:', err.response?.data); // Debug log
+      sessionStorage.removeItem('isAuthenticated');
+      dispatch(setAuthChecked(true)); // Ensure isAuthChecked is set
+      return rejectWithValue({
+        message: err.response?.data?.message || 'Something went wrong',
+        status: err.response?.status || 500,
+        suppressToast: !err.response,
+      });
+    }
   }
-});
+);
+
+export const refreshTokenAsync = createAsyncThunk(
+  'auth/refreshToken',
+  async (_, { rejectWithValue, dispatch }) => {
+    try {
+      console.log('Calling /refresh endpoint'); // Debug log
+      const response = await axiosInstance.post(AUTH_CONSTANTS.AUTH_REFRESH);
+      sessionStorage.setItem('isAuthenticated', 'true');
+      dispatch(setAuthChecked(true)); // Ensure isAuthChecked is set
+      return response.data;
+    } catch (err) {
+      console.error('Refresh token error:', err.response?.data); // Debug log
+      sessionStorage.removeItem('isAuthenticated');
+      dispatch(setAuthChecked(true)); // Ensure isAuthChecked is set
+      return rejectWithValue({
+        message: err.response?.data?.message || 'Token refresh failed',
+        status: err.response?.status || 401,
+      });
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: 'auth',
@@ -232,16 +272,35 @@ const authSlice = createSlice({
       })
       .addCase(getMeAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        state.isAuthenticated = true;
+        state.user = action.payload; // null if no session, user object if authenticated
+        state.isAuthenticated = !!action.payload; // Set based on payload
+        state.isAuthChecked = true;
       })
       .addCase(getMeAsync.rejected, (state, action) => {
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.isAuthChecked = true;
         if (!action.payload.suppressToast) {
           state.errors = { message: action.payload.message };
         }
+      })
+      .addCase(refreshTokenAsync.pending, state => {
+        state.loading = true;
+        state.errors = {};
+      })
+      .addCase(refreshTokenAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.isAuthChecked = true;
+      })
+      .addCase(refreshTokenAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
+        state.isAuthChecked = true;
+        state.errors = { message: action.payload.message };
       });
   },
 });

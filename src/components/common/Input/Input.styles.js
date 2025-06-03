@@ -1,57 +1,44 @@
 export const getInputStyles = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
+    borderRadius: '6px',
+    padding: '6px 12px',
+    fontSize: '1rem',
+    marginBottom: '12px',
     '& fieldset': {
-      borderColor: '#d1d5db',
-    },
-    '&:hover fieldset': {
-      borderColor: '#3b82f6',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: '#3b82f6',
-    },
-    '&.Mui-error fieldset': {
-      borderColor: '#ef4444',
+      borderColor: '#4b5563', // Neutral border color
     },
   },
   '& .MuiInputLabel-root': {
-    color: '#6b7280',
-    '&.Mui-focused': {
-      color: '#3b82f6',
-    },
-    '&.Mui-error': {
-      color: '#ef4444',
-    },
+    fontSize: '1rem',
   },
   '& .MuiFormHelperText-root': {
-    color: '#6b7280',
-    '&.Mui-error': {
-      color: '#ef4444',
-    },
+    fontSize: '0.75rem',
+    marginTop: '4px',
   },
-  '.dark &': {
+  '& .MuiInputBase-input': {
+    padding: '6px 0',
+  },
+  '.light &': {
     '& .MuiOutlinedInput-root': {
       '& fieldset': {
-        borderColor: '#4b5563',
+        borderColor: '#d1d5db', // Lighter border for light mode
       },
-      '&:hover fieldset': {
-        borderColor: '#60a5fa',
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: '#60a5fa',
-      },
-    },
-    '& .MuiInputLabel-root': {
-      color: '#9ca3af',
-      '&.Mui-focused': {
-        color: '#60a5fa',
-      },
-    },
-    '& .MuiFormHelperText-root': {
-      color: '#9ca3af',
     },
     '& .MuiInputBase-input': {
-      color: '#e5e7eb',
+      color: '#333333', // Dark color for light mode to ensure visibility
+    },
+  },
+  '@media (max-width: 600px)': {
+    '& .MuiOutlinedInput-root': {
+      fontSize: '0.875rem',
+      padding: '4px 10px',
+      marginBottom: '10px',
+    },
+    '& .MuiInputLabel-root': {
+      fontSize: '0.875rem',
+    },
+    '& .MuiFormHelperText-root': {
+      fontSize: '0.7rem',
     },
   },
 };
