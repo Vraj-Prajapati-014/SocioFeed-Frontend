@@ -8,11 +8,25 @@ import { getMeAsync } from './features/auth/slices/authSlice';
 import { routeConstants } from './features/auth/constants/routeConstants';
 import ThemeContext from './utils/context/ThemeContext';
 import { lightTheme, darkTheme } from './styles/theme';
-import ThemeToggle from './components/common/ThemeToggle/ThemeToggle';
+import MainLayout from './components/layout/MainLayout';
 import AppRoutes from './AppRoutes';
 import './styles/globals.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/toastify.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 10 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   const dispatch = useDispatch();
@@ -31,36 +45,52 @@ function App() {
     dispatch(getMeAsync()).then(result => {
       setIsAuthChecked(true);
       console.log(result);
+      if (isAuthenticated && location.pathname === routeConstants.ROUTE_LOGIN) {
+        navigate(routeConstants.ROUTE_HOME, { replace: true });
+      }
     });
-  }, [dispatch, themeMode]);
+  }, [dispatch, themeMode, isAuthenticated, location.pathname, navigate]);
 
   useEffect(() => {
     if (isAuthChecked && !isAuthenticated) {
-      const protectedRoutes = [routeConstants.ROUTE_DASHBOARD];
+      const protectedRoutes = [routeConstants.ROUTE_HOME];
       if (protectedRoutes.includes(location.pathname)) {
         navigate(routeConstants.ROUTE_LOGIN, { replace: true });
       }
     }
   }, [isAuthenticated, isAuthChecked, location.pathname, navigate]);
 
+  const authRoutes = [
+    routeConstants.ROUTE_LOGIN,
+    routeConstants.ROUTE_REGISTER,
+    routeConstants.ROUTE_FORGOT_PASSWORD,
+    routeConstants.ROUTE_RESET_PASSWORD,
+    routeConstants.ROUTE_ACTIVATION,
+  ];
+
+  const shouldUseLayout = isAuthenticated && !authRoutes.includes(location.pathname);
+
   return (
-    <ThemeContext.Provider value={{ mode: themeMode }}>
-      <ThemeProvider theme={themeMode === 'light' ? lightTheme : darkTheme}>
-        <ToastContainer />
-        <div className="min-h-screen bg-background">
-          {!isAuthChecked ? (
-            <div className="flex items-center justify-center min-h-screen">
-              <p>Loading...</p>
-            </div>
-          ) : (
-            <>
-              <ThemeToggle className="p-4" />
+    <QueryClientProvider client={queryClient}>
+      <ThemeContext.Provider value={{ mode: themeMode }}>
+        <ThemeProvider theme={themeMode === 'light' ? lightTheme : darkTheme}>
+          <ToastContainer />
+          <div className={`min-h-screen ${themeMode === 'dark' ? 'dark' : ''}`}>
+            {!isAuthChecked ? (
+              <div className="flex items-center justify-center min-h-screen">
+                <p>Loading...</p>
+              </div>
+            ) : shouldUseLayout ? (
+              <MainLayout>
+                <AppRoutes />
+              </MainLayout>
+            ) : (
               <AppRoutes />
-            </>
-          )}
-        </div>
-      </ThemeProvider>
-    </ThemeContext.Provider>
+            )}
+          </div>
+        </ThemeProvider>
+      </ThemeContext.Provider>
+    </QueryClientProvider>
   );
 }
 

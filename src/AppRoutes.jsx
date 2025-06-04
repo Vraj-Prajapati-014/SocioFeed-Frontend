@@ -5,10 +5,13 @@ import RegisterPage from './features/auth/components/RegisterForm';
 import ForgotPasswordPage from './features/auth/components/ForgotPassword';
 import ResetPasswordPage from './features/auth/components/ResetPassword';
 import ActivatePage from './features/auth/components/Activation';
-import DashboardPage from './features/auth/components/DashboardPage';
+// import DashboardPage from './features/auth/components/DashboardPage';
+import HomePage from './features/home/pages/HomePage';
 import ProtectedRoute from './ProtectedRoute';
 import { Navigate } from 'react-router-dom';
 import useAuth from './features/auth/hooks/useAuth';
+import { PROFILE_CONSTANTS } from './features/profile/constants/profileConstants';
+import ProfilePage from './features/profile/pages/ProfilePage';
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -29,7 +32,15 @@ function AppRoutes() {
         path={routeConstants.ROUTE_DASHBOARD}
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_BY_USERNAME}`}
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         }
       />
