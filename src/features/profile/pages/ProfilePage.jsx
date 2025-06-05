@@ -1,28 +1,29 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { routeConstants } from '../../auth/constants/routeConstants';
 import { Box } from '@mui/material';
 import { useProfile } from '../hook/useProfile';
 import ProfileHeader from '../components/ProfileHeader';
 import ProfilePosts from '../components/ProfilePosts';
 import Spinner from '../../../components/common/Spinner/Spinner';
-import useAuth from '../../auth/hooks/useAuth'; // Assuming you have a useAuth hook
+import ErrorMessage from '../../../components/ErrorMessage/ErrorMessage';
+import useAuth from '../../auth/hooks/useAuth';
+import { routeConstants } from '../../auth/constants/routeConstants';
 
 const ProfilePage = () => {
-  const currentUser = useParams(); // Get current user from auth context
-  const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth(); // Use useAuth hook
-  const username = user?.username;
+  const { id } = useParams();
+  console.log('Profile ID:', id);
 
-  // Redirect to login if not authenticated
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const { data: profile, isLoading, isError, error, refetch } = useProfile(id);
+
   React.useEffect(() => {
     if (!isAuthenticated) {
-      navigate(routeConstants.LOGIN);
+      navigate(routeConstants.ROUTE_LOGIN);
     }
   }, [isAuthenticated, navigate]);
 
-  const { data: profile, isLoading, error } = useProfile(username);
-  console.log('Profile data:', profile);
+  const isOwnProfile = user?.id === profile?.id;
 
   if (isLoading) {
     return (
@@ -32,19 +33,21 @@ const ProfilePage = () => {
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <Box className="flex items-center justify-center min-h-screen">
-        <p className="text-red-500">Error: {error}</p>
+        <ErrorMessage error={error} onRetry={refetch} />
       </Box>
     );
   }
 
-  const isOwnProfile = currentUser?.username === username;
-
   return (
     <Box className="max-w-3xl mx-auto py-6">
-      <ProfileHeader profile={profile} isOwnProfile={isOwnProfile} />
+      <ProfileHeader
+        profile={profile}
+        isOwnProfile={isOwnProfile}
+        onFollowChange={refetch} // Pass refetch to trigger cache invalidation
+      />
       <ProfilePosts posts={profile?.posts} />
     </Box>
   );

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { ToastContainer } from 'react-toastify';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setTheme } from './store/slices/themeSlice';
 import { getMeAsync } from './features/auth/slices/authSlice';
 import { routeConstants } from './features/auth/constants/routeConstants';
@@ -13,7 +14,6 @@ import AppRoutes from './AppRoutes';
 import './styles/globals.css';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/toastify.css';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
@@ -32,8 +32,8 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const themeMode = useSelector(state => state.theme.mode);
-  const { isAuthenticated } = useSelector(state => state.auth);
+  const themeMode = useSelector((state) => state.theme.mode);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -42,39 +42,32 @@ function App() {
       dispatch(setTheme(savedTheme));
     }
 
-    dispatch(getMeAsync()).then(result => {
+    dispatch(getMeAsync()).then(() => {
       setIsAuthChecked(true);
-      console.log(result);
-      if (isAuthenticated && location.pathname === routeConstants.ROUTE_LOGIN) {
-        navigate(routeConstants.ROUTE_HOME, { replace: true });
-      }
     });
-  }, [dispatch, themeMode, isAuthenticated, location.pathname, navigate]);
+  }, [dispatch, themeMode]);
 
   useEffect(() => {
-    if (isAuthChecked && !isAuthenticated) {
-      const protectedRoutes = [routeConstants.ROUTE_HOME];
-      if (protectedRoutes.includes(location.pathname)) {
-        navigate(routeConstants.ROUTE_LOGIN, { replace: true });
-      }
+    if (isAuthChecked && !isAuthenticated && location.pathname !== routeConstants.ROUTE_LOGIN) {
+      navigate(routeConstants.ROUTE_LOGIN, { replace: true });
     }
-  }, [isAuthenticated, isAuthChecked, location.pathname, navigate]);
+  }, [isAuthChecked, isAuthenticated, location.pathname, navigate]);
 
   const authRoutes = [
     routeConstants.ROUTE_LOGIN,
     routeConstants.ROUTE_REGISTER,
     routeConstants.ROUTE_FORGOT_PASSWORD,
     routeConstants.ROUTE_RESET_PASSWORD,
-    routeConstants.ROUTE_ACTIVATION,
+    routeConstants.ROUTE_ACTIVATE,
   ];
 
   const shouldUseLayout = isAuthenticated && !authRoutes.includes(location.pathname);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeContext.Provider value={{ mode: themeMode }}>
+      <ThemeContext.Provider value={{ theme: themeMode, mode: themeMode }}>
         <ThemeProvider theme={themeMode === 'light' ? lightTheme : darkTheme}>
-          <ToastContainer />
+          <ToastContainer position="top-right" autoClose={3000} />
           <div className={`min-h-screen ${themeMode === 'dark' ? 'dark' : ''}`}>
             {!isAuthChecked ? (
               <div className="flex items-center justify-center min-h-screen">

@@ -3,16 +3,16 @@ import { fetchPosts } from '../services/postService';
 
 export const usePosts = () => {
   return useInfiniteQuery({
-    queryKey: ['posts'],
-    queryFn: ({ pageParam = 1 }) => fetchPosts({ page: pageParam, limit: 10 }),
-    getNextPageParam: (lastPage, allPages) => {
-      console.log(allPages);
-
-      const { pagination } = lastPage;
-      return pagination.page < pagination.totalPages ? pagination.page + 1 : undefined;
+    queryKey: ['posts', 'all'],
+    queryFn: async ({ pageParam = 1 }) => {
+      const result = await fetchPosts({ page: pageParam, limit: 10 });
+      console.log('usePosts - fetchPosts result:', result);
+      return result;
     },
-    initialPageParam: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    getNextPageParam: (lastPage) => lastPage.nextPage || undefined,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+    refetchOnMount: 'always', // Ensure fresh data
+    refetchOnWindowFocus: false, // Prevent refetch on focus
   });
 };

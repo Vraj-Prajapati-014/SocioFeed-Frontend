@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchProfile } from '../services/profileService';
-// import { useSelector } from 'react-redux';
-// const username=useSelector((state) => state.auth.user);
-// console.log(username);
 
-export const useProfile = username => {
-  console.log('useProfile - Username:', username); // Debug
+export const useProfile = (userId) => {
   return useQuery({
-    queryKey: ['profile', username],
-    queryFn: () => fetchProfile(username),
-    enabled: !!username,
+    queryKey: ['profile', userId], // Changed to userId
+    queryFn: () => fetchProfile(userId), // Changed to userId
+    enabled: !!userId, // Changed to userId
     staleTime: 5 * 60 * 1000,
+    retry: 1,
+    onError: (error) => {
+      console.error('Failed to fetch profile:', error);
+    },
   });
 };

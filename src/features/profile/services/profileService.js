@@ -1,21 +1,18 @@
-import axiosInstance from '../../auth/slices/axiosInstance'; // Reuse existing axiosInstance
+import axiosInstance from '../../auth/slices/axiosInstance';
 import { PROFILE_CONSTANTS } from '../constants/profileConstants';
 
-// Get profile by username
-export const fetchProfile = async username => {
-  console.log('fetchProfile - Username:', username); // Debug
-  const url = `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_BY_USERNAME.replace(':username', username)}`;
-  console.log('fetchProfile - Constructed URL:', url); // Debug
+// Update to fetch profile by userId instead of username
+export const fetchProfile = async (userId) => {
+  const url = `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_BY_ID.replace(':id', userId)}`; // Changed to use :id
   try {
     const response = await axiosInstance.get(url);
     return response.data;
   } catch (error) {
-    throw error.message || 'Failed to fetch profile';
+    throw new Error(error.response?.data?.error || 'Failed to fetch profile');
   }
 };
 
-// Update user info (username, bio)
-export const updateProfileInfo = async data => {
+export const updateProfileInfo = async (data) => {
   try {
     const response = await axiosInstance.put(
       `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_UPDATE_INFO}`,
@@ -23,87 +20,80 @@ export const updateProfileInfo = async data => {
     );
     return response.data;
   } catch (error) {
-    throw error.message || 'Failed to update profile';
+    throw new Error(error.response?.data?.error || 'Failed to update profile');
   }
 };
 
-// Update avatar
-export const updateAvatar = async formData => {
+export const updateAvatar = async (formData) => {
   try {
     const response = await axiosInstance.put(
       `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_UPDATE_AVATAR}`,
       formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      }
+      { headers: { 'Content-Type': 'multipart/form-data' } }
     );
     return response.data;
   } catch (error) {
-    throw error.message || 'Failed to update avatar';
+    throw new Error(error.response?.data?.error || 'Failed to update avatar');
   }
 };
 
-// Follow a user
-export const followUser = async userId => {
+export const followUser = async (userId) => {
   try {
     const response = await axiosInstance.post(
       `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOW.replace(':userId', userId)}`
     );
     return response.data;
   } catch (error) {
-    throw error.message || 'Failed to follow user';
+    throw new Error(error.response?.data?.error || 'Failed to follow user');
   }
 };
 
-// Unfollow a user
-export const unfollowUser = async userId => {
+export const unfollowUser = async (userId) => {
   try {
     const response = await axiosInstance.post(
       `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_UNFOLLOW.replace(':userId', userId)}`
     );
     return response.data;
   } catch (error) {
-    throw error.message || 'Failed to unfollow user';
+    throw new Error(error.response?.data?.error || 'Failed to unfollow user');
   }
 };
 
-// Get followers list
-export const fetchFollowers = async (username, page = 1, limit = 10) => {
+// Update to fetch followers by userId instead of username
+export const fetchFollowers = async (userId, page = 1, limit = 10) => {
   try {
     const response = await axiosInstance.get(
-      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWERS.replace(':username', username)}`,
+      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWERS.replace(':id', userId)}`, // Changed to use :id
       { params: { page, limit } }
     );
     return response.data;
   } catch (error) {
-    throw error.message || 'Failed to fetch followers';
+    throw new Error(error.response?.data?.error || 'Failed to fetch followers');
   }
 };
 
-// Get following list
-export const fetchFollowing = async (username, page = 1, limit = 10) => {
+
+// Update to fetch following by userId instead of username
+export const fetchFollowing = async (userId, page = 1, limit = 10) => {
   try {
     const response = await axiosInstance.get(
-      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWING.replace(':username', username)}`,
+      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWING.replace(':id', userId)}`, // Changed to use :id
       { params: { page, limit } }
     );
     return response.data;
   } catch (error) {
-    throw error.message || 'Failed to fetch following';
+    throw new Error(error.response?.data?.error || 'Failed to fetch following');
   }
 };
 
-// Search users
 export const searchUsers = async (query, page = 1, limit = 10) => {
   try {
     const response = await axiosInstance.get(
       `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_SEARCH}`,
-      {
-        params: { query, page, limit },
-      }
+      { params: { query, page, limit } }
     );
     return response.data;
   } catch (error) {
-    throw error.message || 'Failed to search users';
+    throw new Error(error.response?.data?.error || 'Failed to search users');
   }
 };

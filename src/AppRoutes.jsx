@@ -1,33 +1,38 @@
-import { Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { routeConstants } from './features/auth/constants/routeConstants';
+import { PROFILE_CONSTANTS } from './features/profile/constants/profileConstants';
 import LoginPage from './features/auth/components/LoginForm';
 import RegisterPage from './features/auth/components/RegisterForm';
 import ForgotPasswordPage from './features/auth/components/ForgotPassword';
 import ResetPasswordPage from './features/auth/components/ResetPassword';
 import ActivatePage from './features/auth/components/Activation';
-// import DashboardPage from './features/auth/components/DashboardPage';
 import HomePage from './features/home/pages/HomePage';
-import ProtectedRoute from './ProtectedRoute';
-import { Navigate } from 'react-router-dom';
-import useAuth from './features/auth/hooks/useAuth';
-import { PROFILE_CONSTANTS } from './features/profile/constants/profileConstants';
 import ProfilePage from './features/profile/pages/ProfilePage';
+import EditProfilePage from './features/profile/pages/EditProfilePage';
+import SearchPage from './features/profile/pages/SearchPage';
+import FollowersPage from './features/profile/pages/FollowersPage';
+import FollowingPage from './features/profile/pages/FollowingPage';
+import ProtectedRoute from './ProtectedRoute';
+import PlaceholderPage from './PlaceholderPage';
+import CreatePostPage from './features/post/pages/CreatePostPage';
 
 function AppRoutes() {
-  const { isAuthenticated } = useAuth();
   return (
     <Routes>
-      <Route
-        path={routeConstants.ROUTE_HOME}
-        element={
-          isAuthenticated ? <Navigate to={routeConstants.ROUTE_DASHBOARD} replace /> : <LoginPage />
-        }
-      />
       <Route path={routeConstants.ROUTE_LOGIN} element={<LoginPage />} />
       <Route path={routeConstants.ROUTE_REGISTER} element={<RegisterPage />} />
       <Route path={routeConstants.ROUTE_ACTIVATE} element={<ActivatePage />} />
       <Route path={routeConstants.ROUTE_FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
       <Route path={routeConstants.ROUTE_RESET_PASSWORD} element={<ResetPasswordPage />} />
+      {/* <Route
+        path={routeConstants.ROUTE_HOME}
+        element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      /> */}
       <Route
         path={routeConstants.ROUTE_DASHBOARD}
         element={
@@ -37,13 +42,86 @@ function AppRoutes() {
         }
       />
       <Route
-        path={`${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_BY_USERNAME}`}
+        path={`${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_BY_ID}`}
         element={
           <ProtectedRoute>
             <ProfilePage />
           </ProtectedRoute>
         }
       />
+      <Route
+        path={routeConstants.ROUTE_EDIT_PROFILE}
+        element={
+          <ProtectedRoute>
+            <EditProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={routeConstants.ROUTE_SEARCH}
+        element={
+          <ProtectedRoute>
+            <SearchPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWERS}`}
+        element={
+          <ProtectedRoute>
+            <FollowersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={`${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWING}`}
+        element={
+          <ProtectedRoute>
+            <FollowingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create"
+        element={
+          <ProtectedRoute>
+            <CreatePostPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/saved"
+        element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Saved Posts" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/activity"
+        element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Activity" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages/:id"
+        element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Message Thread" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages"
+        element={
+          <ProtectedRoute>
+            <PlaceholderPage title="Messages" />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to={routeConstants.ROUTE_LOGIN} replace />} />
     </Routes>
   );
 }
