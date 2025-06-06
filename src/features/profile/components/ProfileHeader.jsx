@@ -3,9 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Avatar, Button } from '@mui/material';
 import { useFollow } from '../hook/useFollow';
 import { routeConstants } from '../../auth/constants/routeConstants';
+// import { useSelector } from 'react-redux';
 
 const ProfileHeader = ({ profile, isOwnProfile, onFollowChange }) => {
   const navigate = useNavigate();
+  // const currentUserId = useSelector((state) => state.auth.user?.id); // Adjust based on your auth setup
+  // const { follow, unfollow, isFollowingLoading } = useFollow(profile?.id, currentUserId);
+  console.log(profile.id);
+
   const { follow, unfollow, isFollowingLoading } = useFollow(profile?.id);
 
   const handleFollowToggle = async () => {

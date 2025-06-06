@@ -32,26 +32,33 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const themeMode = useSelector((state) => state.theme.mode);
-  const { isAuthenticated } = useSelector((state) => state.auth);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const themeMode = useSelector(state => state.theme.mode);
+  const { isAuthenticated, isAuthChecked } = useSelector(state => state.auth);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  useEffect(() => {
+    console.log('App.jsx: Dispatching getMeAsync');
+    dispatch(getMeAsync());
+  }, [dispatch]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('themeMode') || 'light';
     if (savedTheme !== themeMode) {
       dispatch(setTheme(savedTheme));
     }
-
-    dispatch(getMeAsync()).then(() => {
-      setIsAuthChecked(true);
-    });
   }, [dispatch, themeMode]);
 
   useEffect(() => {
-    if (isAuthChecked && !isAuthenticated && location.pathname !== routeConstants.ROUTE_LOGIN) {
-      navigate(routeConstants.ROUTE_LOGIN, { replace: true });
-    }
-  }, [isAuthChecked, isAuthenticated, location.pathname, navigate]);
+    console.log('App.jsx: isAuthChecked changed:', isAuthChecked);
+    // Fallback: If isAuthChecked isn't set within 5 seconds, assume failure
+    const timer = setTimeout(() => {
+      if (!isAuthChecked) {
+        console.warn('App.jsx: isAuthChecked not set after 5 seconds, forcing render');
+        setLoadingTimeout(true);
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [isAuthChecked]);
 
   const authRoutes = [
     routeConstants.ROUTE_LOGIN,
@@ -61,7 +68,22 @@ function App() {
     routeConstants.ROUTE_ACTIVATE,
   ];
 
+  useEffect(() => {
+    if (isAuthChecked && !isAuthenticated && !authRoutes.includes(location.pathname)) {
+      console.log('App.jsx: Redirecting to /login, current path:', location.pathname);
+      navigate(routeConstants.ROUTE_LOGIN, { replace: true });
+    }
+  }, [isAuthChecked, isAuthenticated, location.pathname, navigate, authRoutes]);
+
   const shouldUseLayout = isAuthenticated && !authRoutes.includes(location.pathname);
+
+  if (!isAuthChecked && !loadingTimeout) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -69,11 +91,7 @@ function App() {
         <ThemeProvider theme={themeMode === 'light' ? lightTheme : darkTheme}>
           <ToastContainer position="top-right" autoClose={3000} />
           <div className={`min-h-screen ${themeMode === 'dark' ? 'dark' : ''}`}>
-            {!isAuthChecked ? (
-              <div className="flex items-center justify-center min-h-screen">
-                <p>Loading...</p>
-              </div>
-            ) : shouldUseLayout ? (
+            {shouldUseLayout ? (
               <MainLayout>
                 <AppRoutes />
               </MainLayout>

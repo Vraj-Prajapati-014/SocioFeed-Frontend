@@ -12,6 +12,7 @@ function RegisterPage() {
 
   useEffect(() => {
     dispatch(clearMessages());
+    sessionStorage.removeItem('isAuthenticated');
   }, [dispatch]);
 
   useEffect(() => {
