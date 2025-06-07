@@ -1,74 +1,115 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { followUser, unfollowUser } from '../services/profileService';
 import { showToast } from '../../../utils/helpers/toast';
+import useAuth from '../../auth/hooks/useAuth';
 
 export const useFollow = (userId) => {
+  const { user } = useAuth();
+  const currentUserId = user?.id;
   const queryClient = useQueryClient();
 
   const followMutation = useMutation({
-    mutationFn: (userId) => followUser(userId),
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ['profile', userId] });
-      const previousProfile = queryClient.getQueryData(['profile', userId]);
-      queryClient.setQueryData(['profile', userId], (old) => ({
+    mutationFn: (targetUserId) => followUser(targetUserId),
+    onMutate: async (targetUserId) => {
+      await queryClient.cancelQueries({ queryKey: ['profile', targetUserId] });
+      await queryClient.cancelQueries({ queryKey: ['profile', currentUserId] });
+
+      const previousTargetProfile = queryClient.getQueryData(['profile', targetUserId]);
+      const previousCurrentProfile = queryClient.getQueryData(['profile', currentUserId]);
+
+      // Update target user's profile (increase followers)
+      queryClient.setQueryData(['profile', targetUserId], (old) => ({
         ...old,
         isFollowing: true,
-        followersCount: old.followersCount + 1,
+        followersCount: (old?.followersCount || 0) + 1,
       }));
-      return { previousProfile };
+
+      // Update current user's profile (increase following)
+      queryClient.setQueryData(['profile', currentUserId], (old) => ({
+        ...old,
+        followingCount: (old?.followingCount || 0) + 1,
+      }));
+
+      return { previousTargetProfile, previousCurrentProfile };
     },
-    onError: (error, id, context) => {
-      if (error.response?.data?.error === 'You are already following this user') {
-        // The user is already following, so keep isFollowing as true
-        queryClient.setQueryData(['profile', userId], (old) => ({
-          ...old,
-          isFollowing: true,
-        }));
-        showToast('You are already following this user', 'info');
-      } else {
-        // Revert on other errors
-        queryClient.setQueryData(['profile', userId], context.previousProfile);
-        showToast(error.message || 'Failed to follow user', 'error');
-      }
+    onError: (error, targetUserId, context) => {
+      queryClient.setQueryData(['profile', targetUserId], context.previousTargetProfile);
+      queryClient.setQueryData(['profile', currentUserId], context.previousCurrentProfile);
+      showToast(error.message || 'Failed to follow user', 'error');
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
-      queryClient.invalidateQueries({ queryKey: ['followers', userId] });
-      queryClient.invalidateQueries({ queryKey: ['following', userId] });
+      // Update target user's profile with actual counts
+      queryClient.setQueryData(['profile', data.followingUser.id], (old) => ({
+        ...old,
+        isFollowing: true,
+        followersCount: data.followingUser.followersCount,
+        followingCount: data.followingUser.followingCount,
+      }));
+
+      // Update current user's profile with actual counts
+      queryClient.setQueryData(['profile', data.followerUser.id], (old) => ({
+        ...old,
+        followersCount: data.followerUser.followersCount,
+        followingCount: data.followerUser.followingCount,
+      }));
+
+      queryClient.invalidateQueries({ queryKey: ['profile', data.followingUser.id] });
+      queryClient.invalidateQueries({ queryKey: ['profile', data.followerUser.id] });
+      queryClient.invalidateQueries({ queryKey: ['followers', data.followingUser.id] });
+      queryClient.invalidateQueries({ queryKey: ['following', data.followerUser.id] });
       showToast(data.message, 'success');
     },
   });
 
   const unfollowMutation = useMutation({
-    mutationFn: (userId) => unfollowUser(userId),
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ['profile', userId] });
-      const previousProfile = queryClient.getQueryData(['profile', userId]);
-      queryClient.setQueryData(['profile', userId], (old) => ({
+    mutationFn: (targetUserId) => unfollowUser(targetUserId),
+    onMutate: async (targetUserId) => {
+      await queryClient.cancelQueries({ queryKey: ['profile', targetUserId] });
+      await queryClient.cancelQueries({ queryKey: ['profile', currentUserId] });
+
+      const previousTargetProfile = queryClient.getQueryData(['profile', targetUserId]);
+      const previousCurrentProfile = queryClient.getQueryData(['profile', currentUserId]);
+
+      // Update target user's profile (decrease followers)
+      queryClient.setQueryData(['profile', targetUserId], (old) => ({
         ...old,
         isFollowing: false,
-        followersCount: old.followersCount - 1,
+        followersCount: (old?.followersCount || 0) - 1,
       }));
-      return { previousProfile };
+
+      // Update current user's profile (decrease following)
+      queryClient.setQueryData(['profile', currentUserId], (old) => ({
+        ...old,
+        followingCount: (old?.followingCount || 0) - 1,
+      }));
+
+      return { previousTargetProfile, previousCurrentProfile };
     },
-    onError: (error, id, context) => {
-      if (error.response?.data?.error === 'You are not following this user') {
-        // The user is not following, so keep isFollowing as false
-        queryClient.setQueryData(['profile', userId], (old) => ({
-          ...old,
-          isFollowing: false,
-        }));
-        showToast('You are not following this user', 'info');
-      } else {
-        // Revert on other errors
-        queryClient.setQueryData(['profile', userId], context.previousProfile);
-        showToast(error.message || 'Failed to unfollow user', 'error');
-      }
+    onError: (error, targetUserId, context) => {
+      queryClient.setQueryData(['profile', targetUserId], context.previousTargetProfile);
+      queryClient.setQueryData(['profile', currentUserId], context.previousCurrentProfile);
+      showToast(error.message || 'Failed to unfollow user', 'error');
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
-      queryClient.invalidateQueries({ queryKey: ['followers', userId] });
-      queryClient.invalidateQueries({ queryKey: ['following', userId] });
+      // Update target user's profile with actual counts
+      queryClient.setQueryData(['profile', data.followingUser.id], (old) => ({
+        ...old,
+        isFollowing: false,
+        followersCount: data.followingUser.followersCount,
+        followingCount: data.followingUser.followingCount,
+      }));
+
+      // Update current user's profile with actual counts
+      queryClient.setQueryData(['profile', data.followerUser.id], (old) => ({
+        ...old,
+        followersCount: data.followerUser.followersCount,
+        followingCount: data.followerUser.followingCount,
+      }));
+
+      queryClient.invalidateQueries({ queryKey: ['profile', data.followingUser.id] });
+      queryClient.invalidateQueries({ queryKey: ['profile', data.followerUser.id] });
+      queryClient.invalidateQueries({ queryKey: ['followers', data.followingUser.id] });
+      queryClient.invalidateQueries({ queryKey: ['following', data.followerUser.id] });
       showToast(data.message, 'success');
     },
   });
