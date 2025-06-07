@@ -1,9 +1,8 @@
 import axiosInstance from '../../auth/slices/axiosInstance';
-import { PROFILE_CONSTANTS } from '../constants/profileConstants';
+import { PROFILE_CONSTANTS } from '../constants/profileConstants.js';
 
-// Update to fetch profile by userId instead of username
 export const fetchProfile = async (userId) => {
-  const url = `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_BY_ID.replace(':id', userId)}`; // Changed to use :id
+  const url = `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_BY_ID.replace(':id', userId)}`;
   try {
     const response = await axiosInstance.get(url);
     return response.data;
@@ -59,11 +58,10 @@ export const unfollowUser = async (userId) => {
   }
 };
 
-// Update to fetch followers by userId instead of username
 export const fetchFollowers = async (userId, page = 1, limit = 10) => {
   try {
     const response = await axiosInstance.get(
-      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWERS.replace(':id', userId)}`, // Changed to use :id
+      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWERS.replace(':id', userId)}`,
       { params: { page, limit } }
     );
     return response.data;
@@ -72,12 +70,10 @@ export const fetchFollowers = async (userId, page = 1, limit = 10) => {
   }
 };
 
-
-// Update to fetch following by userId instead of username
 export const fetchFollowing = async (userId, page = 1, limit = 10) => {
   try {
     const response = await axiosInstance.get(
-      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWING.replace(':id', userId)}`, // Changed to use :id
+      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWING.replace(':id', userId)}`,
       { params: { page, limit } }
     );
     return response.data;

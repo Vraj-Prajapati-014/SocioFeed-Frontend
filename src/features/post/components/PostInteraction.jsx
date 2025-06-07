@@ -81,10 +81,14 @@ const PostInteraction = ({ post }) => {
     }
   };
 
-  const handleSaveToggleClick = (e) => {
+  const handleSaveToggleClick = async (e) => {
     e.stopPropagation();
-    handleSaveToggle(saved);
-    setSaved(!saved);
+    try {
+      const newIsSaved = await handleSaveToggle(saved);
+      setSaved(newIsSaved);
+    } catch (error) {
+      showToast('Failed to toggle save state', 'error');
+    }
   };
 
   const handleCommentClick = (e) => {

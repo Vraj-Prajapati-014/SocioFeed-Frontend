@@ -49,12 +49,27 @@ export const useSavePost = (postId, userId) => {
       }
       showToast(error.message || 'Failed to save post', 'error');
     },
-    onSuccess: () => {
-      // Invalidate queries to refetch the updated post data
+    onSuccess: (data) => {
+      // Update cache with backend response
+      queryClient.setQueryData(['posts', userId], (old) => {
+        if (!old || !old.posts) return old;
+        return {
+          ...old,
+          posts: old.posts.map(post =>
+            post.id === postId ? { ...post, isSaved: data.isSaved } : post
+          ),
+        };
+      });
+      queryClient.setQueryData(['post', postId], (old) => {
+        if (!old) return old;
+        return { ...old, post: { ...old.post, isSaved: data.isSaved } };
+      });
+      // Invalidate queries to refetch fresh data
       queryClient.invalidateQueries({ queryKey: ['posts', userId] });
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      queryClient.invalidateQueries({ queryKey: ['savedPosts', userId] }); // If you have a saved posts page
-      showToast('Post saved successfully', 'success');
+      queryClient.invalidateQueries({ queryKey: ['savedPosts', userId] });
+      showToast(data.message, 'success');
+      return data.isSaved; // Return isSaved for PostInteraction to update state
     },
   });
 
@@ -97,19 +112,36 @@ export const useSavePost = (postId, userId) => {
       }
       showToast(error.message || 'Failed to unsave post', 'error');
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update cache with backend response
+      queryClient.setQueryData(['posts', userId], (old) => {
+        if (!old || !old.posts) return old;
+        return {
+          ...old,
+          posts: old.posts.map(post =>
+            post.id === postId ? { ...post, isSaved: data.isSaved } : post
+          ),
+        };
+      });
+      queryClient.setQueryData(['post', postId], (old) => {
+        if (!old) return old;
+        return { ...old, post: { ...old.post, isSaved: data.isSaved } };
+      });
       queryClient.invalidateQueries({ queryKey: ['posts', userId] });
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
       queryClient.invalidateQueries({ queryKey: ['savedPosts', userId] });
-      showToast('Post unsaved successfully', 'success');
+      showToast(data.message, 'success');
+      return data.isSaved; // Return isSaved for PostInteraction to update state
     },
   });
 
-  const handleSaveToggle = (isSaved) => {
+  const handleSaveToggle = async (isSaved) => {
     if (isSaved) {
-      unsaveMutation.mutate();
+      const newIsSaved = await unsaveMutation.mutateAsync();
+      return newIsSaved;
     } else {
-      saveMutation.mutate();
+      const newIsSaved = await saveMutation.mutateAsync();
+      return newIsSaved;
     }
   };
 

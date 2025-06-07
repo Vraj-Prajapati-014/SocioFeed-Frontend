@@ -130,19 +130,26 @@ export const savePost = async (postId) => {
   try {
     const response = await axiosInstance.post(`${POST_CONSTANTS.POSTS_BASE_URL}/${postId}/save`);
     console.log('postService - Save post response:', response.data);
-    return response.data;
+    return {
+      message: response.data.message,
+      isSaved: response.data.isSaved || true,
+      post: response.data.post,
+    };
   } catch (error) {
     console.error('postService - Error saving post:', error);
     throw new Error(error.response?.data?.message || 'Failed to save post');
   }
 };
-
 export const unsavePost = async (postId) => {
   if (!postId) throw new Error('postId is not defined');
   try {
     const response = await axiosInstance.delete(`${POST_CONSTANTS.POSTS_BASE_URL}/${postId}/save`);
     console.log('postService - Unsave post response:', response.data);
-    return response.data;
+    return {
+      message: response.data.message,
+      isSaved: response.data.isSaved || false,
+      post: response.data.post,
+    };
   } catch (error) {
     console.error('postService - Error unsaving post:', error);
     throw new Error(error.response?.data?.message || 'Failed to unsave post');
@@ -191,7 +198,7 @@ export const getSavedPosts = async (page = 1, limit = 10) => {
     return {
       posts: (response.data.data.formattedPosts || []).map(post => ({
         ...post,
-        author: post.user || { username: 'Unknown', avatarUrl: '/default-avatar.png' },
+        author: post.user || post.author || { username: 'Unknown', avatarUrl: '/default-avatar.png' },
         comments: post.comments || [],
         images: post.images || [],
       })),

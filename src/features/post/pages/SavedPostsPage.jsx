@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getSavedPosts } from '../services/postService';
@@ -8,6 +8,9 @@ import useAuth from '../../auth/hooks/useAuth';
 const SavedPostsPage = () => {
   const { user } = useAuth();
   const [limit] = useState(10);
+
+  // Log user ID for debugging
+  console.log('SavedPostsPage - User ID:', user?.id);
 
   const fetchPostsCallback = useCallback(
     async ({ pageParam = 1 }) => {
@@ -30,6 +33,13 @@ const SavedPostsPage = () => {
     getNextPageParam: (lastPage) => lastPage.nextPage,
     enabled: !!user?.id,
   });
+
+  // Force refetch on mount
+  useEffect(() => {
+    if (user?.id) {
+      refetch();
+    }
+  }, [user?.id, refetch]);
 
   const handleFetchPosts = useCallback(() => {
     refetch();

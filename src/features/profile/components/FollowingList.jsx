@@ -1,11 +1,12 @@
 import React from 'react';
-import { Box, Typography, Avatar, Button } from '@mui/material';
+import { Box, Typography, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useFollowing } from '../hook/useFollowing';
 import InfiniteScroll from '../../../components/InfiniteScroll/InfiniteScroll';
 import SkeletonLoader from '../../../components/SkeletonLoader/SkeletonLoader';
 import ErrorMessage from '../../../components/ErrorMessage/ErrorMessage';
 import MessageButton from '../../messages/components/MessageButton';
+import FollowButton from './FollowButton';
 
 const FollowingList = ({ userId, username }) => {
   const navigate = useNavigate();
@@ -45,7 +46,11 @@ const FollowingList = ({ userId, username }) => {
                 />
                 <Typography>{follow.username}</Typography>
               </Box>
-              <MessageButton userId={follow.id} username={follow.username} />
+              {follow.isFollowing ? (
+                <MessageButton userId={follow.id} username={follow.username} />
+              ) : (
+                <FollowButton userId={follow.id} isFollowing={follow.isFollowing} />
+              )}
             </Box>
           ))
         ) : (

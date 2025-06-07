@@ -31,6 +31,8 @@ export const useComments = (postId, fetchPosts) => {
   const handleLikeComment = async (commentId, hasLiked, currentLikesCount) => {
     setLoading(true);
     setError(null);
+    console.log(currentLikesCount);
+    
 
     const previousPostData = queryClient.getQueryData(['post', postId]);
 
