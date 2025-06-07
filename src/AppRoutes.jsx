@@ -16,6 +16,8 @@ import FollowingPage from './features/profile/pages/FollowingPage';
 import ProtectedRoute from './ProtectedRoute';
 import PlaceholderPage from './PlaceholderPage';
 import CreatePostPage from './features/post/pages/CreatePostPage';
+import PostDetail from './features/post/components/PostDetail';
+import SavedPostsPage from './features/post/pages/SavedPostsPage';
 
 function AppRoutes() {
   return (
@@ -90,10 +92,18 @@ function AppRoutes() {
         }
       />
       <Route
+  path="/posts/:postId"
+  element={
+    <ProtectedRoute>
+      <PostDetail />
+    </ProtectedRoute>
+  }
+/>
+      <Route
         path="/saved"
         element={
           <ProtectedRoute>
-            <PlaceholderPage title="Saved Posts" />
+            <SavedPostsPage/>
           </ProtectedRoute>
         }
       />

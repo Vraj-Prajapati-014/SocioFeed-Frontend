@@ -36,7 +36,7 @@ export const likePost = async (postId) => {
   try {
     const response = await axiosInstance.post(`/posts/${postId}/like`);
     console.log('postService - Like post response:', response.data);
-    return response.data; // Returns { message, likesCount, hasLiked }
+    return response.data;
   } catch (error) {
     console.error('postService - Error liking post:', error);
     throw new Error(error.response?.data?.message || 'Failed to like post');
@@ -50,7 +50,7 @@ export const unlikePost = async (postId) => {
   try {
     const response = await axiosInstance.delete(`/posts/${postId}/like`);
     console.log('postService - Unlike post response:', response.data);
-    return response.data; // Returns { message, likesCount, hasLiked }
+    return response.data;
   } catch (error) {
     console.error('postService - Error unliking post:', error);
     throw new Error(error.response?.data?.message || 'Failed to unlike post');
@@ -67,31 +67,139 @@ export const createPost = async (content, media) => {
   return response.data;
 };
 
-
 export const createComment = async (postId, content, parentCommentId = null) => {
   const url = parentCommentId
     ? `${POST_CONSTANTS.POSTS_BASE_URL}/${postId}/comments/${parentCommentId}/reply`
     : `${POST_CONSTANTS.POSTS_BASE_URL}/${postId}/comments`;
-  const response = await axiosInstance.post(url, { content });
-  return response.data;
+  try {
+    const response = await axiosInstance.post(url, { content });
+    console.log('postService - Create comment response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('postService - Error creating comment:', error);
+    throw new Error(error.response?.data?.message || 'Failed to create comment');
+  }
 };
 
 export const likeComment = async (commentId) => {
-  const response = await axiosInstance.post(`${POST_CONSTANTS.POSTS_BASE_URL}/comments/${commentId}/like`);
-  return response.data;
+  try {
+    const response = await axiosInstance.post(`${POST_CONSTANTS.POSTS_BASE_URL}/comments/${commentId}/like`);
+    console.log('postService - Like comment response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('postService - Error liking comment:', error);
+    throw new Error(error.response?.data?.message || 'Failed to like comment');
+  }
 };
 
 export const unlikeComment = async (commentId) => {
-  const response = await axiosInstance.delete(`${POST_CONSTANTS.POSTS_BASE_URL}/comments/${commentId}/unlike`);
-  return response.data;
+  try {
+    const response = await axiosInstance.delete(`${POST_CONSTANTS.POSTS_BASE_URL}/comments/${commentId}/unlike`); // Fixed URL
+    console.log('postService - Unlike comment response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('postService - Error unliking comment:', error);
+    throw new Error(error.response?.data?.message || 'Failed to unlike comment');
+  }
 };
 
 export const deleteComment = async (commentId) => {
-  const response = await axiosInstance.delete(`${POST_CONSTANTS.POSTS_BASE_URL}/comments/${commentId}`);
-  return response.data;
+  try {
+    const response = await axiosInstance.delete(`${POST_CONSTANTS.POSTS_BASE_URL}/comments/${commentId}`);
+    console.log('postService - Delete comment response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('postService - Error deleting comment:', error);
+    throw new Error(error.response?.data?.message || 'Failed to delete comment');
+  }
 };
 
 export const deletePost = async (postId) => {
-  const response = await axiosInstance.delete(`${POST_CONSTANTS.POSTS_BASE_URL}/${postId}`);
-  return response.data;
+  try {
+    const response = await axiosInstance.delete(`${POST_CONSTANTS.POSTS_BASE_URL}/${postId}`);
+    console.log('postService - Delete post response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('postService - Error deleting post:', error);
+    throw new Error(error.response?.data?.message || 'Failed to delete post');
+  }
+};
+
+export const savePost = async (postId) => {
+  if (!postId) throw new Error('postId is not defined');
+  try {
+    const response = await axiosInstance.post(`${POST_CONSTANTS.POSTS_BASE_URL}/${postId}/save`);
+    console.log('postService - Save post response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('postService - Error saving post:', error);
+    throw new Error(error.response?.data?.message || 'Failed to save post');
+  }
+};
+
+export const unsavePost = async (postId) => {
+  if (!postId) throw new Error('postId is not defined');
+  try {
+    const response = await axiosInstance.delete(`${POST_CONSTANTS.POSTS_BASE_URL}/${postId}/save`);
+    console.log('postService - Unsave post response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('postService - Error unsaving post:', error);
+    throw new Error(error.response?.data?.message || 'Failed to unsave post');
+  }
+};
+
+export const getPostById = async (postId, page = 1, limit = 10) => { // Removed userId since backend handles hasLiked
+  if (!postId) {
+    throw new Error('postId is not defined');
+  }
+  try {
+    const response = await axiosInstance.get(`/posts/${postId}`, {
+      params: { commentsPage: page, commentsLimit: limit },
+    });
+    console.log('postService - Get post by ID response:', {
+      status: response.status,
+      data: response.data,
+    });
+
+    const postData = response.data.data || {};
+
+    return {
+      post: {
+        ...postData,
+        user: postData.user || { username: 'Unknown', avatarUrl: '/default-avatar.png' },
+        comments: postData.comments || [],
+        images: postData.images || [],
+      },
+      totalComments: postData.totalComments || 0,
+    };
+  } catch (error) {
+    console.error('postService - Error fetching post by ID:', error);
+    throw new Error(error.response?.data?.message || 'Failed to fetch post');
+  }
+};
+
+export const getSavedPosts = async (page = 1, limit = 10) => {
+  try {
+    const response = await axiosInstance.get(`/posts/saved`, {
+      params: { page, limit },
+    });
+    console.log('postService - Get saved posts response:', {
+      status: response.status,
+      data: response.data,
+    });
+    return {
+      posts: (response.data.data.formattedPosts || []).map(post => ({
+        ...post,
+        author: post.user || { username: 'Unknown', avatarUrl: '/default-avatar.png' },
+        comments: post.comments || [],
+        images: post.images || [],
+      })),
+      totalPosts: response.data.data.totalSavedPosts || 0,
+      nextPage: response.data.data.totalSavedPosts > page * limit ? page + 1 : null,
+    };
+  } catch (error) {
+    console.error('postService - Error fetching saved posts:', error);
+    throw new Error(error.response?.data?.message || 'Failed to fetch saved posts');
+  }
 };

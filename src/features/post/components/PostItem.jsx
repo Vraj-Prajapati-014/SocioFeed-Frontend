@@ -1,20 +1,25 @@
 import React from 'react';
-import { Box, Typography, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Avatar } from '@mui/material';
 import PostCarousel from './PostCarousel';
 import PostInteraction from './PostInteraction';
 import Card from '../../../components/common/Card/Card';
 import ThemeContext from '../../../utils/context/ThemeContext';
 
-
 const PostItem = ({ post }) => {
   const { theme } = React.useContext(ThemeContext);
   const navigate = useNavigate();
 
-  // Log post data for debugging
-  console.log('Post data:', JSON.stringify(post, null, 2));
+  const handleCardClick = () => {
+    if (!post?.id) {
+      console.error('Missing post ID:', post);
+      return;
+    }
+    navigate(`/posts/${post.id}`);
+  };
 
-  const handleProfileClick = () => {
+  const handleProfileClick = (e) => {
+    e.stopPropagation();
     if (!post?.author?.id) {
       console.error('Missing author ID for post:', post);
       return;
@@ -36,7 +41,7 @@ const PostItem = ({ post }) => {
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full cursor-pointer" onClick={handleCardClick}>
       <Box className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700">
         <Avatar
           src={post.author?.avatarUrl || '/default-avatar.png'}
@@ -67,7 +72,10 @@ const PostItem = ({ post }) => {
           </Box>
         )}
       </Box>
-      <Box className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <Box
+        className="p-4 border-t border-gray-200 dark:border-gray-700"
+        onClick={(e) => e.stopPropagation()} // Prevent interaction clicks from navigating
+      >
         <PostInteraction post={post} />
       </Box>
     </Card>

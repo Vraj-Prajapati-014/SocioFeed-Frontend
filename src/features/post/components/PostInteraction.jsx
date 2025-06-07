@@ -1,18 +1,23 @@
 import React from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
-import { Favorite, FavoriteBorder, Comment, Share } from '@mui/icons-material';
+import { Favorite, FavoriteBorder, Comment, Share, Bookmark, BookmarkBorder } from '@mui/icons-material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import ThemeContext from '../../../utils/context/ThemeContext';
 import { showToast } from '../../../utils/helpers/toast';
-import { likePost, unlikePost } from '../services/postService'
+import { likePost, unlikePost } from '../services/postService';
+import { useSavePost } from '../hooks/useSavePost';
+import useAuth from '../../auth/hooks/useAuth';
 
 const PostInteraction = ({ post }) => {
   const { theme } = React.useContext(ThemeContext);
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [liked, setLiked] = React.useState(post?.hasLiked || false);
   const [likesCount, setLikesCount] = React.useState(post?.likesCount || 0);
+  const [saved, setSaved] = React.useState(post?.isSaved || false);
 
-  // Ensure post and post.id exist before proceeding
+  const { handleSaveToggle, isLoading: isSaving } = useSavePost(post?.id, user?.id);
+
   if (!post || !post.id) {
     return (
       <Box className="flex items-center justify-between mb-2">
@@ -67,19 +72,28 @@ const PostInteraction = ({ post }) => {
     },
   });
 
-  const handleLikeToggle = () => {
-   if (liked) {
+  const handleLikeToggle = (e) => {
+    e.stopPropagation();
+    if (liked) {
       unlikeMutation.mutate();
     } else {
       likeMutation.mutate();
     }
   };
 
-  const handleCommentClick = () => {
+  const handleSaveToggleClick = (e) => {
+    e.stopPropagation();
+    handleSaveToggle(saved);
+    setSaved(!saved);
+  };
+
+  const handleCommentClick = (e) => {
+    e.stopPropagation();
     console.log('Navigate to comments for post:', post.id);
   };
 
-  const handleShareClick = () => {
+  const handleShareClick = (e) => {
+    e.stopPropagation();
     navigator.clipboard.writeText(window.location.origin + `/post/${post.id}`);
     showToast('Link copied to clipboard', 'success');
   };
@@ -102,6 +116,13 @@ const PostInteraction = ({ post }) => {
         </IconButton>
         <IconButton onClick={handleShareClick}>
           <Share className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
+        </IconButton>
+        <IconButton onClick={handleSaveToggleClick} disabled={isSaving}>
+          {saved ? (
+            <Bookmark className="text-blue-500" />
+          ) : (
+            <BookmarkBorder className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
+          )}
         </IconButton>
       </Box>
       <Typography
