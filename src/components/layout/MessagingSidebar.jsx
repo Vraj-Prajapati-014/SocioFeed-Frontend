@@ -1,97 +1,124 @@
-import React, { useContext } from 'react';
-import { Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText } from '@mui/material';
+import React, { useContext, useEffect } from 'react';
+import { Box, Typography, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ThemeContext from '../../utils/context/ThemeContext';
 import { useMessages } from '../../features/messages/hooks/useMessages';
+import useAuth from '../../features/auth/hooks/useAuth';
 
-const MessagingSidebar = () => {
+const MessagingSidebar = ({ onNavClick }) => {
   const { theme } = useContext(ThemeContext);
+  const { user, isAuthenticated, isAuthChecked } = useAuth();
   const navigate = useNavigate();
-  const { data: messages = [], isLoading } = useMessages();
+  const { data: conversations = [], isLoading, refetch } = useMessages();
 
-  const handleMessageClick = (messageId) => {
-    navigate(`/messages/${messageId}`);
+  useEffect(() => {
+    console.log('MessagingSidebar - Conversations:', conversations);
+    console.log('MessagingSidebar - Auth state:', { isAuthenticated, isAuthChecked, user });
+  }, [conversations, isAuthenticated, isAuthChecked, user]);
+
+  const handleMessageClick = (otherUserId, username) => {
+    navigate(`/messages/${otherUserId}`, { state: { username } });
+    if (onNavClick) onNavClick();
   };
 
   const isDark = theme === 'dark';
 
+  if (!isAuthChecked) {
+    return (
+      <div className={`h-screen p-4 overflow-y-auto ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <Typography className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          Checking authentication...
+        </Typography>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className={`h-screen p-4 overflow-y-auto ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <Typography className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          Please log in to view conversations.
+        </Typography>
+      </div>
+    );
+  }
+
   return (
-    <Box
-      className={`h-screen p-4 overflow-y-auto ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+    <div
+      className={`h-screen p-4 overflow-y-auto ${
+        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+      }`}
     >
-      <Box className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <Typography
           variant="h6"
           className={`font-semibold ${isDark ? 'text-white' : 'text-black'}`}
         >
           Messages
         </Typography>
-        <Box
-          className={`text-sm cursor-pointer ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
+        <button
+          className={`text-sm font-medium transition-colors duration-200 ${
+            isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
+          }`}
           onClick={() => navigate('/messages')}
         >
           See all
-        </Box>
-      </Box>
+        </button>
+      </div>
       {isLoading ? (
-        <Typography className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading...</Typography>
-      ) : (
-        <List>
-          {messages.length > 0 ? (
-            messages.map((message) => (
-              <ListItem
-                key={message.id}
-                button
-                onClick={() => handleMessageClick(message.id)}
-                className={`mb-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                  message.unread ? (isDark ? 'bg-gray-700' : 'bg-gray-50') : ''
+        <Typography className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          Loading...
+        </Typography>
+      ) : conversations.length > 0 ? (
+        <ul className="space-y-2">
+          {conversations.map((conv) => {
+            console.log('MessagingSidebar - Rendering conversation:', conv);
+            return (
+              <li
+                key={conv.user.id}
+                className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors duration-200 ${
+                  isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                 }`}
-                sx={{ py: 1.5 }}
+                onClick={() => handleMessageClick(conv.user.id, conv.user.username)}
               >
-                <ListItemAvatar>
-                  <Avatar
-                    src={message.user.avatarUrl}
-                    alt={message.user.username}
-                    className="w-12 h-12"
-                  />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={message.user.username}
-                  secondary={
-                    <Box component="span" className="flex justify-between items-center">
-                      <Typography
-                        component="span"
-                        variant="body2"
-                        className={isDark ? 'text-gray-400' : 'text-gray-600'}
-                      >
-                        {message.lastMessage}
-                      </Typography>
-                      <Typography
-                        component="span"
-                        variant="caption"
-                        className={isDark ? 'text-gray-500' : 'text-gray-500'}
-                      >
-                        {message.timestamp}
-                      </Typography>
-                    </Box>
-                  }
-                  primaryTypographyProps={{
-                    variant: 'subtitle1',
-                    className: `${isDark ? 'text-gray-200' : 'text-gray-900'} font-medium`,
-                  }}
-                  secondaryTypographyProps={{ component: 'span' }}
+                <Avatar
+                  src={conv.user.avatarUrl || '/default-avatar.png'}
+                  alt={conv.user.username}
+                  className="w-12 h-12 mr-3 rounded-full object-cover"
                 />
-                {message.unread && <Box className="w-3 h-3 bg-blue-500 rounded-full ml-2" />}
-              </ListItem>
-            ))
-          ) : (
-            <Typography className={isDark ? 'text-gray-400' : 'text-gray-600'}>
-              No messages yet.
-            </Typography>
-          )}
-        </List>
+                <div className="flex-1">
+                  <div className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                    {conv.user.username}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {conv.lastMessage.length > 20
+                        ? `${conv.lastMessage.slice(0, 20)}...`
+                        : conv.lastMessage}
+                    </span>
+                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                      {conv.lastMessageAt
+                        ? new Date(conv.lastMessageAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : ''}
+                    </span>
+                  </div>
+                </div>
+                {conv.user.id !== user?.id && (
+                  <div className="w-3 h-3 bg-blue-500 rounded-full ml-2" />
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <Typography className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          No conversations yet.
+        </Typography>
       )}
-    </Box>
+    </div>
   );
 };
 

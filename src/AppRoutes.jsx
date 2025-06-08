@@ -18,6 +18,8 @@ import PlaceholderPage from './PlaceholderPage';
 import CreatePostPage from './features/post/pages/CreatePostPage';
 import PostDetail from './features/post/components/PostDetail';
 import SavedPostsPage from './features/post/pages/SavedPostsPage';
+import MessagesList from './features/messages/components/MessagesList';
+import MessageThread from './features/messages/components/MessageThread';
 
 function AppRoutes() {
   return (
@@ -115,11 +117,11 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
+     <Route
         path="/messages/:id"
         element={
           <ProtectedRoute>
-            <PlaceholderPage title="Message Thread" />
+            <MessageThread />
           </ProtectedRoute>
         }
       />
@@ -127,7 +129,7 @@ function AppRoutes() {
         path="/messages"
         element={
           <ProtectedRoute>
-            <PlaceholderPage title="Messages" />
+            <MessagesList />
           </ProtectedRoute>
         }
       />

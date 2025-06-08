@@ -34,6 +34,7 @@
     "react-toastify": "^11.0.5",
     "redux": "^5.0.1",
     "slick-carousel": "^1.8.1",
+    "socket.io-client": "^4.8.1",
     "tailwindcss": "^4.1.8",
     "yup": "^1.6.1"
   },

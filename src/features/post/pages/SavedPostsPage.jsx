@@ -1,20 +1,28 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { getSavedPosts } from '../services/postService';
+import { fetchProfile } from '../../profile/services/profileService';
 import PostItem from '../components/PostItem';
+import ProfileHeader from '../../profile/components/ProfileHeader';
 import useAuth from '../../auth/hooks/useAuth';
 
 const SavedPostsPage = () => {
   const { user } = useAuth();
   const [limit] = useState(10);
 
-  // Log user ID for debugging
-  console.log('SavedPostsPage - User ID:', user?.id);
+  // Fetch user profile
+  const { data: profile, isLoading: isProfileLoading, error: profileError } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: () => fetchProfile(user?.id),
+    enabled: !!user?.id,
+  });
 
   const fetchPostsCallback = useCallback(
     async ({ pageParam = 1 }) => {
-      return await getSavedPosts(pageParam, limit);
+      const result = await getSavedPosts(pageParam, limit);
+      console.log('SavedPostsPage - Fetched posts for page:', pageParam, result);
+      return result;
     },
     [limit]
   );
@@ -34,7 +42,6 @@ const SavedPostsPage = () => {
     enabled: !!user?.id,
   });
 
-  // Force refetch on mount
   useEffect(() => {
     if (user?.id) {
       refetch();
@@ -47,11 +54,44 @@ const SavedPostsPage = () => {
 
   const allPosts = data?.pages?.flatMap(page => page.posts) || [];
 
+  console.log('SavedPostsPage - All posts:', allPosts);
+
+  if (isProfileLoading) {
+    return (
+      <Box className="flex justify-center my-4">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <Box className="max-w-2xl mx-auto p-4">
+        <Typography color="error" className="my-4">
+          Failed to load profile: {profileError.message}
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box className="max-w-2xl mx-auto p-4">
-      <Typography variant="h5" className="mb-4 font-semibold">
+      {/* Profile Header */}
+      {/* {profile && (
+        <ProfileHeader
+          profile={profile}
+          isOwnProfile={true}
+          onProfileUpdate={(updatedProfile) => {
+            // Update profile in cache if needed
+            console.log('Profile updated:', updatedProfile);
+          }}
+        />
+      )} */}
+
+      <Typography variant="h5" className="my-4 font-semibold">
         Saved Posts
       </Typography>
+
       {isLoading && (
         <Box className="flex justify-center my-4">
           <CircularProgress />
@@ -66,7 +106,11 @@ const SavedPostsPage = () => {
         <Typography className="my-4">No saved posts yet.</Typography>
       )}
       {allPosts.map((post) => (
-        <PostItem key={post.id} post={post} fetchPosts={handleFetchPosts} />
+        <PostItem
+          key={post.id}
+          post={post}
+          fetchPosts={handleFetchPosts}
+        />
       ))}
       {hasNextPage && (
         <Box className="flex justify-center my-4">

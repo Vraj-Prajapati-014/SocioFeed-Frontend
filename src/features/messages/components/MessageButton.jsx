@@ -6,7 +6,6 @@ const MessageButton = ({ userId, username }) => {
   const navigate = useNavigate();
 
   const handleMessageClick = () => {
-    // Navigate to a messaging page, passing the username in state for display
     navigate(`/messages/${userId}`, { state: { username } });
   };
 

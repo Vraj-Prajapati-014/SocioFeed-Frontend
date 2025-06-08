@@ -10,6 +10,7 @@ const initialState = {
   errors: {},
   successMessage: '',
   activationStatus: null,
+  token: null,
 };
 
 export const registerAsync = createAsyncThunk(
@@ -156,6 +157,7 @@ const authSlice = createSlice({
       state.successMessage = '';
       state.activationStatus = null;
       state.user = null;
+      state.token = null;
       state.isAuthenticated = false;
       state.isAuthChecked = false;
     },
@@ -202,6 +204,7 @@ const authSlice = createSlice({
       .addCase(loginAsync.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
+        state.token = action.payload.token;
         state.isAuthenticated = true;
         state.successMessage = 'Login successful';
       })
@@ -220,6 +223,7 @@ const authSlice = createSlice({
       .addCase(activateAccountAsync.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
+        state.token = action.payload.token;
         state.isAuthenticated = true;
         state.successMessage = 'Account activated successfully';
       })
@@ -280,6 +284,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.token = null;
         state.isAuthChecked = true;
         if (!action.payload.suppressToast) {
           state.errors = { message: action.payload.message };
@@ -292,6 +297,7 @@ const authSlice = createSlice({
       .addCase(refreshTokenAsync.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
+        state.token = action.payload.token;
         state.isAuthenticated = true;
         state.isAuthChecked = true;
       })
@@ -299,6 +305,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
+        state.token = null;
         state.isAuthChecked = true;
         state.errors = { message: action.payload.message };
       });

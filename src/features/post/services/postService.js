@@ -185,7 +185,6 @@ export const getPostById = async (postId, page = 1, limit = 10) => { // Removed 
     throw new Error(error.response?.data?.message || 'Failed to fetch post');
   }
 };
-
 export const getSavedPosts = async (page = 1, limit = 10) => {
   try {
     const response = await axiosInstance.get(`/posts/saved`, {
@@ -196,14 +195,17 @@ export const getSavedPosts = async (page = 1, limit = 10) => {
       data: response.data,
     });
     return {
-      posts: (response.data.data.formattedPosts || []).map(post => ({
+      posts: (response.data.data || []).map(post => ({
         ...post,
-        author: post.user || post.author || { username: 'Unknown', avatarUrl: '/default-avatar.png' },
+        author: {
+          id: post.userId, // Use userId from the post
+          ...(post.author || post.user || { username: 'Unknown', avatarUrl: '/default-avatar.png' }),
+        },
         comments: post.comments || [],
         images: post.images || [],
       })),
-      totalPosts: response.data.data.totalSavedPosts || 0,
-      nextPage: response.data.data.totalSavedPosts > page * limit ? page + 1 : null,
+      totalPosts: response.data.pagination.totalItems || 0,
+      nextPage: response.data.pagination.hasNextPage ? page + 1 : null,
     };
   } catch (error) {
     console.error('postService - Error fetching saved posts:', error);

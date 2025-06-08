@@ -35,8 +35,8 @@ const Sidebar = ({ onNavClick }) => {
     {
       text: 'Profile',
       icon: <Person />,
-      path: `/profile/${user?.id}`, // Changed to userId
-      state: { username }, // Pass username in state
+      path: `/profile/${user?.id}`,
+      state: { username },
     },
     { text: 'Create', icon: <Add />, path: '/create' },
     { text: 'Saved', icon: <Bookmark />, path: '/saved' },
@@ -50,19 +50,21 @@ const Sidebar = ({ onNavClick }) => {
   const isDark = theme === 'dark';
 
   return (
-    <Box
-      className={`h-screen p-4 border-r sticky top-0 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} flex flex-col`}
+    <div
+      className={`h-screen p-4 border-r sticky top-0 flex flex-col ${
+        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+      }`}
     >
-      <Box className="mb-6">
+      <div className="mb-6">
         <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>SocioFeed</h1>
-      </Box>
+      </div>
       <List>
         {navItems.map((item) => (
           <ListItem
             key={item.text}
             component={Link}
             to={item.path}
-            state={item.state} // Pass state for Profile link
+            state={item.state}
             onClick={onNavClick}
             className={`mb-2 rounded-lg ${
               location.pathname === item.path ? (isDark ? 'bg-gray-700' : 'bg-gray-100') : ''
@@ -77,7 +79,7 @@ const Sidebar = ({ onNavClick }) => {
           </ListItem>
         ))}
       </List>
-      <Box className="mt-auto">
+      <div className="mt-auto">
         <List>
           <ListItem>
             <ListItemText
@@ -113,8 +115,8 @@ const Sidebar = ({ onNavClick }) => {
             </ListItem>
           ))}
         </List>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };
 
