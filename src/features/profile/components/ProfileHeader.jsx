@@ -1,30 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Avatar, Button } from '@mui/material';
 import { useFollow } from '../hook/useFollow';
+import { fetchProfile } from '../services/profileService';
 import { routeConstants } from '../../auth/constants/routeConstants';
-// import { useSelector } from 'react-redux';
 
-const ProfileHeader = ({ profile, isOwnProfile, onFollowChange }) => {
+const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate }) => {
   const navigate = useNavigate();
-  // const currentUserId = useSelector((state) => state.auth.user?.id); // Adjust based on your auth setup
-  // const { follow, unfollow, isFollowingLoading } = useFollow(profile?.id, currentUserId);
-  console.log(profile.id);
-
-  const { follow, unfollow, isFollowingLoading } = useFollow(profile?.id);
+  const { follow, unfollow } = useFollow();
+  const [isLoading, setIsLoading] = useState(false); // Local loading state
 
   const handleFollowToggle = async () => {
     try {
+      setIsLoading(true);
+      // Callback to fetch the latest profile data and update the parent
+      const refreshProfile = async () => {
+        const updatedProfile = await fetchProfile(profile.id);
+        console.log('Fetched updated profile:', updatedProfile);
+        if (onProfileUpdate) {
+          onProfileUpdate(updatedProfile);
+        }
+      };
+
       if (profile.isFollowing) {
-        await unfollow(profile.id);
+        await unfollow(profile.id, refreshProfile);
       } else {
-        await follow(profile.id);
-      }
-      if (onFollowChange) {
-        await onFollowChange();
+        await follow(profile.id, refreshProfile);
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -62,14 +68,14 @@ const ProfileHeader = ({ profile, isOwnProfile, onFollowChange }) => {
               variant={profile?.isFollowing ? 'outlined' : 'contained'}
               size="small"
               onClick={handleFollowToggle}
-              disabled={isFollowingLoading}
+              disabled={isLoading}
               className={
                 profile?.isFollowing
                   ? 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
                   : 'bg-blue-500 text-white hover:bg-blue-600'
               }
             >
-              {isFollowingLoading ? 'Loading...' : profile?.isFollowing ? 'Unfollow' : 'Follow'}
+              {isLoading ? 'Loading...' : profile?.isFollowing ? 'Unfollow' : 'Follow'}
             </Button>
           )}
         </Box>

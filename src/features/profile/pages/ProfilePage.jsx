@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Box } from '@mui/material';
-import { useProfile } from '../hook/useProfile';
+import { fetchProfile } from '../services/profileService';
 import ProfileHeader from '../components/ProfileHeader';
 import ProfilePosts from '../components/ProfilePosts';
 import Spinner from '../../../components/common/Spinner/Spinner';
@@ -15,13 +15,41 @@ const ProfilePage = () => {
 
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { data: profile, isLoading, isError, error, refetch } = useProfile(id);
+  const [profile, setProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+  const [error, setError] = useState(null);
 
-  React.useEffect(() => {
+  // Fetch the initial profile data
+  const loadProfile = async () => {
+    try {
+      setIsLoading(true);
+      const profileData = await fetchProfile(id);
+      console.log('Initial profile data:', profileData);
+      setProfile(profileData);
+      setIsError(false);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setIsError(true);
+      setError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (!isAuthenticated) {
       navigate(routeConstants.ROUTE_LOGIN);
+    } else {
+      loadProfile();
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, id]);
+
+  const handleProfileUpdate = (updatedProfile) => {
+    console.log('Updating profile state:', updatedProfile);
+    setProfile(updatedProfile); // Update the profile state with the new data
+  };
 
   const isOwnProfile = user?.id === profile?.id;
 
@@ -36,7 +64,7 @@ const ProfilePage = () => {
   if (isError) {
     return (
       <Box className="flex items-center justify-center min-h-screen">
-        <ErrorMessage error={error} onRetry={refetch} />
+        <ErrorMessage error={error} onRetry={loadProfile} />
       </Box>
     );
   }
@@ -46,7 +74,7 @@ const ProfilePage = () => {
       <ProfileHeader
         profile={profile}
         isOwnProfile={isOwnProfile}
-        onFollowChange={refetch} // Pass refetch to trigger cache invalidation
+        onProfileUpdate={handleProfileUpdate}
       />
       <ProfilePosts posts={profile?.posts} />
     </Box>

@@ -1,30 +1,54 @@
-import React from 'react';
-import Button from '../../../components/common/Button/Button';
+import React, { useState } from 'react';
+import { Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { useFollow } from '../hook/useFollow';
 
-const FollowButton = ({ userId, isFollowing }) => {
-  const { follow, unfollow, isFollowingLoading } = useFollow(userId);
+const FollowButton = ({ userId, isFollowing, followsYou, onFollowChange }) => {
+  const { follow } = useFollow();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleClick = () => {
-    if (isFollowing) {
-      unfollow(userId);
-    } else {
-      follow(userId);
+  const handleFollowToggle = async () => {
+    try {
+      if (isFollowing) {
+        navigate(`/messages/${userId}`);
+      } else {
+        setIsLoading(true);
+        await follow(userId, onFollowChange); // Trigger parent refresh
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  if (isFollowing === null) {
+    return null;
+  }
+
+  let buttonLabel;
+  if (isFollowing) {
+    buttonLabel = 'Message';
+  } else if (followsYou) {
+    buttonLabel = 'Follow Back';
+  } else {
+    buttonLabel = 'Follow';
+  }
+
   return (
     <Button
-      onClick={handleClick}
+      variant={isFollowing ? 'outlined' : 'contained'}
       size="small"
-      disabled={isFollowingLoading}
+      onClick={handleFollowToggle}
+      disabled={isLoading}
       className={
         isFollowing
-          ? 'text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
+          ? 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
           : 'bg-blue-500 text-white hover:bg-blue-600'
       }
     >
-      {isFollowingLoading ? 'Loading...' : isFollowing ? 'Unfollow' : 'Follow Back'}
+      {isLoading ? 'Loading...' : buttonLabel}
     </Button>
   );
 };

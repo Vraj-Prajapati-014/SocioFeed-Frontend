@@ -47,6 +47,7 @@ const SearchResults = ({ data, fetchNextPage, hasNextPage, isLoading, isError, e
                 <FollowButton
                   userId={user.id}
                   isFollowing={user.isFollowing}
+                  followsYou={user.followsYou} // Pass followsYou to FollowButton
                 />
               )}
             </Box>
