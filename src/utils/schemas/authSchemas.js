@@ -45,7 +45,7 @@ const schemas = {
     email: Yup.string().email('Invalid email format').required('Email is required'),
   }),
   post: Yup.object({
-    title: Yup.string().required('Title is required'),
+    // title: Yup.string().required('Title is required'),
     content: Yup.string().required('Content is required'),
   }),
   comment: Yup.object({

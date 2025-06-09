@@ -1,1 +1,193 @@
 @import "tailwindcss";
+
+@layer components {
+  .custom-prose {
+    @apply leading-relaxed;
+
+    h1 {
+      @apply text-2xl sm:text-3xl font-bold mb-4;
+    }
+    h2 {
+      @apply text-xl sm:text-2xl font-semibold mb-3;
+    }
+    h3 {
+      @apply text-lg sm:text-xl font-semibold mb-2;
+    }
+    h4 {
+      @apply text-base sm:text-lg font-semibold mb-2;
+    }
+    h5 {
+      @apply text-sm sm:text-base font-semibold mb-1;
+    }
+    h6 {
+      @apply text-xs sm:text-sm font-semibold mb-1;
+    }
+
+    p {
+      @apply mb-4 leading-relaxed;
+    }
+
+    /* List styles with support for nesting */
+    ul, ol {
+      @apply mb-4 pl-6;
+    }
+    ul {
+      @apply list-disc;
+    }
+    ol {
+      @apply list-decimal;
+    }
+    li {
+      @apply mb-1;
+    }
+    /* Nested lists */
+    ul ul, ol ul, ul ol, ol ol {
+      @apply mt-1 mb-2 pl-4;
+    }
+
+    /* Links (already present) */
+    a {
+      @apply text-blue-400 hover:underline hover:text-blue-500 transition-colors duration-200;
+    }
+
+    /* Blockquote (already present) */
+    blockquote {
+      @apply border-l-4 border-blue-500 pl-4 italic mb-4;
+    }
+
+    /* Inline code and code blocks (already present) */
+    code {
+      @apply bg-gray-200 dark:bg-gray-700 text-red-600 dark:text-red-400 rounded px-1 py-0.5 font-mono text-sm;
+    }
+    pre {
+      @apply bg-gray-200 dark:bg-gray-700 p-4 rounded-lg mb-4 overflow-x-auto;
+    }
+    pre code {
+      @apply bg-transparent p-0;
+    }
+
+    /* Horizontal rule (already present) */
+    hr {
+      @apply border-t my-4;
+    }
+
+    /* Bold (handled by default font-bold) */
+    strong {
+      @apply font-bold;
+    }
+
+    /* Italic (handled by default italic) */
+    em {
+      @apply italic;
+    }
+
+    /* Strike */
+    s, strike {
+      @apply line-through;
+    }
+
+    /* Underline */
+    u {
+      @apply underline;
+    }
+
+    /* Light mode specific styles */
+    &:not(.dark) {
+      @apply text-gray-800;
+
+      h1, h2, h3, h4, h5, h6 {
+        @apply text-gray-900;
+      }
+
+      p, li {
+        @apply text-gray-700;
+      }
+
+      ul, ol {
+        @apply text-gray-700;
+      }
+
+      strong, em, s, strike, u {
+        @apply text-gray-800;
+      }
+
+      blockquote {
+        @apply text-gray-600;
+      }
+
+      pre code {
+        @apply text-gray-800;
+      }
+
+      hr {
+        @apply border-gray-300;
+      }
+    }
+
+    /* Dark mode specific styles */
+    &.dark {
+      @apply text-gray-200;
+
+      h1, h2, h3, h4, h5, h6 {
+        @apply text-gray-100;
+      }
+
+      p, li {
+        @apply text-gray-300;
+      }
+
+      ul, ol {
+        @apply text-gray-300;
+      }
+
+      strong, em, s, strike, u {
+        @apply text-gray-200;
+      }
+
+      blockquote {
+        @apply text-gray-400;
+      }
+
+      pre code {
+        @apply text-gray-200;
+      }
+
+      hr {
+        @apply border-gray-600;
+      }
+    }
+  }
+}
+
+/* Ensure dark mode classes are applied to the root element */
+.dark .custom-prose {
+  @apply dark;
+}
+
+/* Global styles for inputs and buttons */
+input[type="file"] {
+  @apply cursor-pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  @apply cursor-pointer;
+}
+
+button:disabled {
+  @apply cursor-not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .custom-prose {
+    h1 {
+      @apply text-xl;
+    }
+    h2 {
+      @apply text-lg;
+    }
+    h3 {
+      @apply text-base;
+    }
+  }
+}

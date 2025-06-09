@@ -1,9 +1,9 @@
-import React, { useContext, useEffect } from 'react';
-import { Box, Typography, Avatar } from '@mui/material';
+import { Avatar, Typography } from '@mui/material';
+import { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ThemeContext from '../../utils/context/ThemeContext';
-import { useMessages } from '../../features/messages/hooks/useMessages';
 import useAuth from '../../features/auth/hooks/useAuth';
+import { useMessages } from '../../features/messages/hooks/useMessages';
+import ThemeContext from '../../utils/context/ThemeContext';
 
 const MessagingSidebar = ({ onNavClick }) => {
   const { theme } = useContext(ThemeContext);
@@ -56,14 +56,14 @@ const MessagingSidebar = ({ onNavClick }) => {
         >
           Messages
         </Typography>
-        <button
+        {/* <button
           className={`text-sm font-medium transition-colors duration-200 ${
             isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
           }`}
           onClick={() => navigate('/messages')}
         >
           See all
-        </button>
+        </button> */}
       </div>
       {isLoading ? (
         <Typography className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>

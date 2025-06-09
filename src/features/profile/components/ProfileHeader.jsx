@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Avatar, Button } from '@mui/material';
+import { Box, Typography, Avatar } from '@mui/material';
+import Button from '../../../components/common/Button/Button';
+import FollowButton from './FollowButton';
+import MessageButton from '../../messages/components/MessageButton';
 import { useFollow } from '../hook/useFollow';
 import { fetchProfile } from '../services/profileService';
 import { routeConstants } from '../../auth/constants/routeConstants';
 
-const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate }) => {
+const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate, hideButtons = false }) => {
   const navigate = useNavigate();
   const { follow, unfollow } = useFollow();
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleFollowToggle = async () => {
     try {
       setIsLoading(true);
-      // Callback to fetch the latest profile data and update the parent
       const refreshProfile = async () => {
         const updatedProfile = await fetchProfile(profile.id);
         console.log('Fetched updated profile:', updatedProfile);
@@ -54,29 +56,35 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate }) => {
           <Typography variant="h5" className="font-semibold text-gray-900 dark:text-gray-100">
             {profile?.username}
           </Typography>
-          {isOwnProfile ? (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => navigate(routeConstants.ROUTE_EDIT_PROFILE)}
-              className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              Edit Profile
-            </Button>
-          ) : (
-            <Button
-              variant={profile?.isFollowing ? 'outlined' : 'contained'}
-              size="small"
-              onClick={handleFollowToggle}
-              disabled={isLoading}
-              className={
-                profile?.isFollowing
-                  ? 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-              }
-            >
-              {isLoading ? 'Loading...' : profile?.isFollowing ? 'Unfollow' : 'Follow'}
-            </Button>
+          {!hideButtons && (
+            <Box className="flex items-center gap-2">
+              {isOwnProfile ? (
+                <Button
+                  onClick={() => navigate(routeConstants.ROUTE_EDIT_PROFILE)}
+                  size="small"
+                  className="px-4 py-1 rounded-lg text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium transition-all duration-200 shadow-sm"
+                >
+                  Edit Profile
+                </Button>
+              ) : (
+                <>
+                  <FollowButton
+                    userId={profile.id}
+                    isFollowing={profile.isFollowing}
+                    followsYou={false}
+                    onFollowChange={handleFollowToggle}
+                    isLoading={isLoading} // Pass isLoading to FollowButton
+                  />
+                  {profile.isFollowing !== null && (
+                    <MessageButton
+                      userId={profile.id}
+                      username={profile.username}
+                      disabled={!profile.isFollowing}
+                    />
+                  )}
+                </>
+              )}
+            </Box>
           )}
         </Box>
         <Box className="flex gap-6 mb-4">
@@ -96,9 +104,10 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate }) => {
             <strong>{profile?.postsCount || 0}</strong> posts
           </Typography>
         </Box>
-        <Typography className="text-gray-800 dark:text-gray-200">
-          {profile?.bio || 'No bio yet.'}
-        </Typography>
+        <Typography
+          className="text-gray-800 dark:text-gray-200"
+          dangerouslySetInnerHTML={{ __html: profile?.bio || 'No bio yet.' }}
+        />
       </Box>
     </Box>
   );

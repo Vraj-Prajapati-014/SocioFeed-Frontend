@@ -64,10 +64,8 @@ const PostDetail = () => {
   const post = data?.post;
   const totalComments = data?.totalComments;
 
-  // Debug: Log the post object to verify its structure
   console.log('PostDetail - Post data:', post);
 
-  // Check if post.author exists, otherwise show an error message
   if (!post?.author) {
     return (
       <Box className="flex items-center justify-center min-h-screen">
@@ -80,10 +78,9 @@ const PostDetail = () => {
 
   return (
     <Box className="max-w-5xl mx-auto py-6 flex flex-col md:flex-row gap-4">
-      {/* Left Column: Post Image */}
       <Box className="flex-1">
         {post.images && post.images.length > 0 ? (
-          <PostCarousel images={post.images.map(img => [img.imageUrl])} />
+          <PostCarousel images={post.images} /> 
         ) : (
           <Box className="w-full h-96 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
             <Typography>No Image Available</Typography>
@@ -91,9 +88,7 @@ const PostDetail = () => {
         )}
       </Box>
 
-      {/* Right Column: Post Details, Likes, Comments */}
       <Box className="flex-1 flex flex-col min-h-[500px] border border-gray-200 dark:border-gray-700 rounded-lg">
-        {/* Header: Author Info */}
         <Box className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700">
           <IconButton onClick={() => navigate(-1)} className="mr-2">
             <ArrowBack />
@@ -113,17 +108,15 @@ const PostDetail = () => {
           </Typography>
         </Box>
 
-        {/* Middle: Post Content and Comments */}
         <Box className="flex-1 overflow-y-auto p-4">
           {post.content && (
-            <Typography
-              variant="body1"
-              className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}
-              sx={{ mb: 2 }}
-            >
-              {post.content}
-            </Typography>
-          )}
+  <Typography
+    variant="body1"
+    className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}
+    sx={{ mb: 2 }}
+    dangerouslySetInnerHTML={{ __html: post.content }}
+  />
+)}
           {post.comments?.length > 0 ? (
             <List>
               {post.comments.map((comment) => (
@@ -146,7 +139,6 @@ const PostDetail = () => {
           )}
         </Box>
 
-        {/* Footer: Interactions and Comment Input */}
         <Box className="p-4 border-t border-gray-200 dark:border-gray-700">
           <PostInteraction post={post} />
           <Box className="mt-2">

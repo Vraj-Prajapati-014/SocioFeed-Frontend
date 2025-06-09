@@ -10,14 +10,6 @@ const PostItem = ({ post }) => {
   const { theme } = React.useContext(ThemeContext);
   const navigate = useNavigate();
 
-  const handleCardClick = () => {
-    if (!post?.id) {
-      console.error('Missing post ID:', post);
-      return;
-    }
-    navigate(`/posts/${post.id}`);
-  };
-
   const handleProfileClick = (e) => {
     e.stopPropagation();
     if (!post?.author?.id) {
@@ -41,7 +33,7 @@ const PostItem = ({ post }) => {
   }
 
   return (
-    <Card className="w-full cursor-pointer" onClick={handleCardClick}>
+    <Card className="w-full">
       <Box className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700">
         <Avatar
           src={post.author?.avatarUrl || '/default-avatar.png'}
@@ -59,22 +51,21 @@ const PostItem = ({ post }) => {
       </Box>
       <Box className="p-4">
         {post.content && (
-          <Typography
-            variant="body1"
-            className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}
-          >
-            {post.content}
-          </Typography>
-        )}
+  <Typography
+    variant="body1"
+    className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}
+    dangerouslySetInnerHTML={{ __html: post.content }}
+  />
+)}
         {post.images && post.images.length > 0 && (
           <Box className="mt-4">
-            <PostCarousel images={post.images.map(img => [img.imageUrl])} />
+            <PostCarousel images={post.images} />
           </Box>
         )}
       </Box>
       <Box
         className="p-4 border-t border-gray-200 dark:border-gray-700"
-        onClick={(e) => e.stopPropagation()} // Prevent interaction clicks from navigating
+        onClick={(e) => e.stopPropagation()}
       >
         <PostInteraction post={post} />
       </Box>

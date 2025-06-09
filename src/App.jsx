@@ -9,6 +9,7 @@ import { getMeAsync } from './features/auth/slices/authSlice';
 import { routeConstants } from './features/auth/constants/routeConstants';
 import ThemeContext from './utils/context/ThemeContext';
 import { lightTheme, darkTheme } from './styles/theme';
+import Spinner from './components/common/Spinner/Spinner';
 import MainLayout from './components/layout/MainLayout';
 import AppRoutes from './AppRoutes';
 import './styles/globals.css';
@@ -80,8 +81,8 @@ function App() {
   if (!isAuthChecked && !loadingTimeout) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
-      </div>
+             <Spinner size="medium" />
+           </div>
     );
   }
 

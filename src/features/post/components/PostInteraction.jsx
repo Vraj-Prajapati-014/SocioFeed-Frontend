@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Add this import
 import { Box, IconButton, Typography } from '@mui/material';
 import { Favorite, FavoriteBorder, Comment, Share, Bookmark, BookmarkBorder } from '@mui/icons-material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ const PostInteraction = ({ post }) => {
   const { theme } = React.useContext(ThemeContext);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate(); // Add navigate hook
   const [liked, setLiked] = React.useState(post?.hasLiked || false);
   const [likesCount, setLikesCount] = React.useState(post?.likesCount || 0);
   const [saved, setSaved] = React.useState(post?.isSaved || false);
@@ -93,7 +95,7 @@ const PostInteraction = ({ post }) => {
 
   const handleCommentClick = (e) => {
     e.stopPropagation();
-    console.log('Navigate to comments for post:', post.id);
+    navigate(`/posts/${post.id}`); // Navigate to PostDetail page
   };
 
   const handleShareClick = (e) => {

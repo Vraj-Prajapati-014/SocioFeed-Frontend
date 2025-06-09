@@ -93,3 +93,25 @@ export const searchUsers = async (query, page = 1, limit = 10) => {
     throw new Error(error.response?.data?.error || 'Failed to search users');
   }
 };
+export const fetchSearchHistory = async (limit = 10) => {
+  try {
+    const response = await axiosInstance.get(
+      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_SEARCH_HISTORY}`,
+      { params: { limit } }
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Failed to fetch search history');
+  }
+};
+
+export const deleteSearchHistoryEntry = async (entryId) => {
+  try {
+    const response = await axiosInstance.delete(
+      `${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_DELETE_SEARCH_HISTORY.replace(':id', entryId)}`
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Failed to delete search history entry');
+  }
+};
