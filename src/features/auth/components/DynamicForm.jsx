@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 import Card from '../../../components/common/Card/Card';
 import Input from '../../../components/common/Input/Input';
 import Button from '../../../components/common/Button/Button';
@@ -25,50 +26,59 @@ const DynamicForm = ({
   const [formData, setFormData] = useState(initialValues);
   const [formErrors, setFormErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
-  console.log(isFormValid);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
     if (successMessage) {
       showToast(successMessage, 'success');
+      setHasSubmitted(false);
+      setFormData(initialValues);
+      setFormErrors({});
     }
-  }, [successMessage]);
+  }, [successMessage, initialValues]);
 
   useEffect(() => {
-    if (errors && Object.keys(errors).length > 0) {
+    if (errors && Object.keys(errors).length > 0 && hasSubmitted) {
       const errorMessage = errors.message || 'An error occurred';
       showToast(errorMessage, 'error');
-      setFormErrors(errors); // Merge server-side errors with form errors
+
+      const newFormErrors = {};
+      if (errors.details) {
+        errors.details.forEach(({ field, message }) => {
+          newFormErrors[field] = message;
+        });
+      } else if (errors.field) {
+        newFormErrors[errors.field] = errors.message;
+      } else {
+        newFormErrors.general = errorMessage;
+      }
+      setFormErrors(newFormErrors);
     }
-  }, [errors]);
+  }, [errors, hasSubmitted]);
 
   useEffect(() => {
-    // Validate the entire form to determine if it's valid for submission
     const validationErrors = validateForm(formType, formData);
     setIsFormValid(Object.keys(validationErrors).length === 0);
-  }, [formData, formType]);
+    if (hasSubmitted) {
+      setFormErrors(validationErrors);
+    }
+  }, [formData, formType, hasSubmitted]);
 
   const handleChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-
-    // Validate the changed field
-    const fieldData = { ...formData, [name]: value };
-    const validationErrors = validateForm(formType, fieldData);
-    setFormErrors(prev => ({
-      ...prev,
-      [name]: validationErrors[name] || '',
-    }));
   };
 
   const handleSubmit = e => {
     e.preventDefault();
+    setHasSubmitted(true);
     const validationErrors = validateForm(formType, formData);
     if (Object.keys(validationErrors).length > 0) {
-      console.log('Validation errors on submit:', validationErrors); // Debug log
       setFormErrors(validationErrors);
       showToast('Please fix the errors in the form', 'error');
       return;
     }
+    setFormErrors({});
     onSubmit(formData);
   };
 
@@ -76,6 +86,9 @@ const DynamicForm = ({
     <Card className="p-6 w-full">
       {additionalProps.title && (
         <h2 className="text-2xl font-bold mb-4 text-center text-white">{additionalProps.title}</h2>
+      )}
+      {formErrors.general && (
+        <p className="text-red-500 text-sm text-center mb-4">{formErrors.general}</p>
       )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {config.fields?.map(field => (
@@ -88,7 +101,7 @@ const DynamicForm = ({
             placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
             value={formData[field.name]}
             onChange={handleChange}
-            error={formErrors[field.name] || errors[field.name]}
+            error={formErrors[field.name] || ''}
             className="text-gray-300 placeholder-gray-400"
           />
         ))}
@@ -96,7 +109,7 @@ const DynamicForm = ({
           type="submit"
           variant="primary"
           size="medium"
-          disabled={loading} // Removed !isFormValid condition
+          disabled={loading}
           className="mt-2 bg-gray-600 hover:bg-gray-700 text-white"
         >
           {loading ? <Spinner size="small" /> : config.submitButtonText}
@@ -104,9 +117,9 @@ const DynamicForm = ({
       </form>
       {config.additionalLinks?.map((link, index) => (
         <p key={index} className="mt-4 text-center text-sm">
-          <a href={link.href} className="text-purple-400 hover:underline">
+          <Link to={link.href} className="text-purple-400 hover:underline">
             {link.text}
-          </a>
+          </Link>
         </p>
       ))}
     </Card>

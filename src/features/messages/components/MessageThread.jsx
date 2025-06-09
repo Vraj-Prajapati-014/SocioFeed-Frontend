@@ -4,7 +4,7 @@ import { Box, Typography, TextField, IconButton, Avatar } from '@mui/material';
 import { Send as SendIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import ThemeContext from '../../../utils/context/ThemeContext';
 import { useConversation } from '../hooks/useConversation';
-import { useSocket } from '../hooks/useSocket';
+import  useSocket  from '../hooks/useSocket';
 import useAuth from '../../auth/hooks/useAuth';
 import { sendMessage, deleteMessage } from '../services/messagesService';
 import { showToast } from '../../../utils/helpers/toast';
@@ -15,12 +15,15 @@ const MessageThread = () => {
   const { id: otherUserId } = useParams();
   const { user, isAuthenticated, isAuthChecked } = useAuth();
   const { theme } = useContext(ThemeContext);
-  const socket = useSocket();
+  const { socket, isConnected } = useSocket();
   const { data: messages = [], isLoading, refetch } = useConversation(isAuthenticated ? otherUserId : null);
   const [newMessage, setNewMessage] = useState('');
   const [messageList, setMessageList] = useState([]);
   const [receiverProfile, setReceiverProfile] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isReceiverOnline, setIsReceiverOnline] = useState(false); // Track receiver's online status
   const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   const isDark = theme === 'dark';
 
@@ -31,6 +34,7 @@ const MessageThread = () => {
       try {
         const profileData = await fetchProfile(otherUserId);
         setReceiverProfile(profileData);
+        setIsReceiverOnline(profileData.isOnline || false); // Initialize online status
       } catch (error) {
         console.error('Error fetching receiver profile:', error);
         showToast('Failed to load receiver profile', 'error');
@@ -40,10 +44,12 @@ const MessageThread = () => {
     loadReceiverProfile();
   }, [otherUserId, isAuthenticated]);
 
+  // Sync messages from useConversation with local state
   useEffect(() => {
     setMessageList(messages);
   }, [messages]);
 
+  // Scroll to the bottom when messages update
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -52,6 +58,7 @@ const MessageThread = () => {
     scrollToBottom();
   }, [messageList]);
 
+  // Handle WebSocket events
   useEffect(() => {
     if (!socket || !isAuthenticated || !user) return;
 
@@ -60,23 +67,45 @@ const MessageThread = () => {
         (message.sender.id === user.id && message.receiver.id === otherUserId) ||
         (message.sender.id === otherUserId && message.receiver.id === user.id)
       ) {
-        setMessageList((prev) => [
-          ...prev,
-          {
-            id: message.id,
-            content: message.content,
-            createdAt: message.createdAt,
-            sender: message.sender,
-            receiver: message.receiver,
-          },
-        ]);
-        refetch();
+        setMessageList((prev) => {
+          if (prev.some((msg) => msg.id === message.id)) {
+            return prev;
+          }
+          return [
+            ...prev,
+            {
+              id: message.id,
+              content: message.content,
+              createdAt: message.createdAt,
+              sender: message.sender,
+              receiver: message.receiver,
+            },
+          ];
+        });
       }
     });
 
     socket.on('messageDeleted', ({ messageId }) => {
       setMessageList((prev) => prev.filter((msg) => msg.id !== messageId));
       refetch();
+    });
+
+    socket.on('typing', ({ senderId }) => {
+      if (senderId === otherUserId) {
+        setIsTyping(true);
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+        typingTimeoutRef.current = setTimeout(() => {
+          setIsTyping(false);
+        }, 2000);
+      }
+    });
+
+    socket.on('userStatus', ({ userId, status }) => {
+      if (userId === otherUserId) {
+        setIsReceiverOnline(status === 'online');
+      }
     });
 
     socket.on('error', (error) => {
@@ -86,9 +115,20 @@ const MessageThread = () => {
     return () => {
       socket.off('message');
       socket.off('messageDeleted');
+      socket.off('typing');
+      socket.off('userStatus');
       socket.off('error');
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
   }, [socket, user, otherUserId, isAuthenticated, refetch]);
+
+  const handleTyping = () => {
+    if (socket && otherUserId) {
+      socket.emit('typing', { receiverId: otherUserId });
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!isAuthenticated) {
@@ -98,6 +138,11 @@ const MessageThread = () => {
 
     if (!newMessage.trim()) {
       showToast('Message cannot be empty', 'error');
+      return;
+    }
+
+    if (!isConnected) {
+      showToast('Not connected to chat server', 'error');
       return;
     }
 
@@ -113,7 +158,11 @@ const MessageThread = () => {
       ) {
         throw new Error('Invalid message response from server');
       }
-      socket.emit('sendMessage', { receiverId: otherUserId, content: newMessage });
+      socket.emit('sendMessage', { receiverId: otherUserId, content: newMessage }, (response) => {
+        if (response.status !== 'success') {
+          showToast('Failed to broadcast message: ' + response.message, 'error');
+        }
+      });
       setNewMessage('');
       refetch();
     } catch (error) {
@@ -122,9 +171,18 @@ const MessageThread = () => {
   };
 
   const handleDeleteMessage = async (messageId) => {
+    if (!isConnected) {
+      showToast('Not connected to chat server', 'error');
+      return;
+    }
+
     try {
       await deleteMessage(messageId);
-      socket.emit('deleteMessage', { messageId });
+      socket.emit('deleteMessage', { messageId }, (response) => {
+        if (response.status !== 'success') {
+          showToast('Failed to broadcast message deletion: ' + response.message, 'error');
+        }
+      });
       setMessageList((prev) => prev.filter((msg) => msg.id !== messageId));
       refetch();
     } catch (error) {
@@ -154,12 +212,30 @@ const MessageThread = () => {
 
   return (
     <Box className={`flex flex-col h-screen p-4 ${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg`}>
+      <Box className="mb-2">
+        <Typography
+          variant="caption"
+          className={isConnected ? 'text-green-500' : 'text-red-500'}
+        >
+          Chat Server: {isConnected ? 'Connected' : 'Disconnected'}
+        </Typography>
+      </Box>
+
       {receiverProfile ? (
-        <ProfileHeader
-          profile={receiverProfile}
-          isOwnProfile={false}
-          onProfileUpdate={() => {}} // No-op since we don't need to update the profile in this context
-        />
+        <Box className="flex items-center mb-4">
+          <ProfileHeader
+            profile={receiverProfile}
+            isOwnProfile={false}
+            onProfileUpdate={() => {}}
+          />
+          <Typography
+            variant="caption"
+            className={isReceiverOnline ? 'text-green-500' : 'text-gray-500'}
+            sx={{ ml: 2 }}
+          >
+            {isReceiverOnline ? 'Online' : 'Offline'}
+          </Typography>
+        </Box>
       ) : (
         <Box className="flex items-center justify-center p-4">
           <Typography className={isDark ? 'text-gray-400' : 'text-gray-600'}>
@@ -235,6 +311,11 @@ const MessageThread = () => {
             No messages yet.
           </Typography>
         )}
+        {isTyping && (
+          <Typography className={isDark ? 'text-gray-400' : 'text-gray-600'} sx={{ mt: 1 }}>
+            {receiverProfile?.username || 'User'} is typing...
+          </Typography>
+        )}
         <div ref={messagesEndRef} />
       </Box>
 
@@ -244,7 +325,10 @@ const MessageThread = () => {
           variant="outlined"
           placeholder="Type a message..."
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          onChange={(e) => {
+            setNewMessage(e.target.value);
+            handleTyping();
+          }}
           onKeyPress={(e) => {
             if (e.key === 'Enter') handleSendMessage();
           }}

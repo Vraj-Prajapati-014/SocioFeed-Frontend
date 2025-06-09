@@ -3,38 +3,42 @@ import { io } from 'socket.io-client';
 const SOCKET_URL = 'http://localhost:5000';
 const SOCKET_PATH = '/socket.io';
 
-let socket = null;
+let socketRef = { current: null };
 
-export const initializeSocket = (token) => {
-  if (socket) return socket;
+export const initializeSocket = () => {
+  if (socketRef.current) return socketRef.current;
 
-  socket = io(SOCKET_URL, {
+  socketRef.current = io(SOCKET_URL, {
     path: SOCKET_PATH,
     withCredentials: true,
     transports: ['websocket'],
-    auth: { token },
   });
 
-  socket.on('connect', () => {
-    console.log('WebSocket connected:', socket.id);
+  socketRef.current.on('connect', () => {
+    const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    console.log(`[${timestamp}] WebSocket connected: ${socketRef.current.id}`);
   });
 
-  socket.on('connect_error', (error) => {
-    console.error('WebSocket connection error:', error.message);
+  socketRef.current.on('connect_error', async (error) => {
+    const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    console.error(`[${timestamp}] WebSocket connection error: ${error.message}`);
   });
 
-  socket.on('disconnect', () => {
-    console.log('WebSocket disconnected');
+  socketRef.current.on('disconnect', (reason) => {
+    const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    console.log(`[${timestamp}] WebSocket disconnected: ${reason}`);
   });
 
-  return socket;
+  return socketRef.current;
 };
 
 export const disconnectSocket = () => {
-  if (socket) {
-    socket.disconnect();
-    socket = null;
+  if (socketRef.current) {
+    const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    console.log(`[${timestamp}] Disconnecting WebSocket manually`);
+    socketRef.current.disconnect();
+    socketRef.current = null;
   }
 };
 
-export const getSocket = () => socket;
+export const getSocket = () => socketRef.current;

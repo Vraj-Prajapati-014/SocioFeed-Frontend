@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; // Add this import
+import { useNavigate } from 'react-router-dom';
 import { Box, IconButton, Typography } from '@mui/material';
 import { Favorite, FavoriteBorder, Comment, Share, Bookmark, BookmarkBorder } from '@mui/icons-material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,7 +13,7 @@ const PostInteraction = ({ post }) => {
   const { theme } = React.useContext(ThemeContext);
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const navigate = useNavigate(); // Add navigate hook
+  const navigate = useNavigate();
   const [liked, setLiked] = React.useState(post?.hasLiked || false);
   const [likesCount, setLikesCount] = React.useState(post?.likesCount || 0);
   const [saved, setSaved] = React.useState(post?.isSaved || false);
@@ -95,7 +95,7 @@ const PostInteraction = ({ post }) => {
 
   const handleCommentClick = (e) => {
     e.stopPropagation();
-    navigate(`/posts/${post.id}`); // Navigate to PostDetail page
+    navigate(`/posts/${post.id}`);
   };
 
   const handleShareClick = (e) => {
@@ -117,9 +117,19 @@ const PostInteraction = ({ post }) => {
             <FavoriteBorder className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
           )}
         </IconButton>
-        <IconButton onClick={handleCommentClick}>
-          <Comment className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
-        </IconButton>
+        <Box className="flex items-center">
+          <IconButton onClick={handleCommentClick}>
+            <Comment className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
+          </IconButton>
+          {post.totalComments > 0 && (
+            <Typography
+              variant="caption"
+              className={`ml-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}
+            >
+              {post.totalComments} {post.totalComments === 1 ? 'comment' : 'comments'}
+            </Typography>
+          )}
+        </Box>
         <IconButton onClick={handleShareClick}>
           <Share className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
         </IconButton>
@@ -135,7 +145,7 @@ const PostInteraction = ({ post }) => {
         variant="caption"
         className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}
       >
-        {likesCount} likes
+        {likesCount} {likesCount === 1 ? 'like' : 'likes'}
       </Typography>
     </Box>
   );

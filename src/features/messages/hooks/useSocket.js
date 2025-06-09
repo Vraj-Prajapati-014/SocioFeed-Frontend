@@ -1,39 +1,54 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { initializeSocket, disconnectSocket, getSocket } from '../services/socketService';
-import { useDispatch, useSelector } from 'react-redux';
-import { refreshTokenAsync } from '../../auth/slices/authSlice';
 
-export const useSocket = () => {
-  const [socket, setSocket] = useState(null);
-  const dispatch = useDispatch();
+const useSocket = () => {
+  const [isConnected, setIsConnected] = useState(false);
+  const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const newSocket = initializeSocket();
-    setSocket(newSocket);
-
-    if (newSocket) {
-      newSocket.on('connect_error', async (error) => {
-        if (error.message === 'WebSocket authentication failed') {
-          try {
-            await dispatch(refreshTokenAsync()).unwrap();
-            disconnectSocket();
-            const refreshedSocket = initializeSocket();
-            setSocket(refreshedSocket);
-          } catch (refreshError) {
-            console.error('Failed to refresh token for WebSocket:', refreshError);
-            window.location.href = '/login';
-          }
-        }
-      });
+    if (!isAuthenticated) {
+      disconnectSocket();
+      setIsConnected(false);
+      return;
     }
 
+    const socket = initializeSocket();
+
+    setIsConnected(socket.connected);
+
+    const handleConnect = () => {
+      setIsConnected(true);
+      console.log('Socket.IO connection established:', socket.id);
+    };
+
+    const handleConnectError = (error) => {
+      setIsConnected(false);
+      if (error.message.includes('Authentication')) {
+        console.log('Authentication error handled by socketService:', error.message);
+      }
+    };
+
+    const handleDisconnect = (reason) => {
+      setIsConnected(false);
+      console.log('Socket.IO disconnected:', reason);
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('connect_error', handleConnectError);
+    socket.on('disconnect', handleDisconnect);
+
     return () => {
+      socket.off('connect', handleConnect);
+      socket.off('connect_error', handleConnectError);
+      socket.off('disconnect', handleDisconnect);
       disconnectSocket();
     };
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated, navigate]);
 
-  return socket;
+  return { socket: getSocket(), isConnected };
 };
+
+export default useSocket;
