@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams,useNavigate } from 'react-router-dom';
 import { Box, Typography, TextField, IconButton, Avatar } from '@mui/material';
 import { Send as SendIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import ThemeContext from '../../../utils/context/ThemeContext';
 import { useConversation } from '../hooks/useConversation';
-import  useSocket  from '../hooks/useSocket';
+import useSocket from '../hooks/useSocket';
 import useAuth from '../../auth/hooks/useAuth';
 import { sendMessage, deleteMessage } from '../services/messagesService';
 import { showToast } from '../../../utils/helpers/toast';
@@ -21,20 +21,32 @@ const MessageThread = () => {
   const [messageList, setMessageList] = useState([]);
   const [receiverProfile, setReceiverProfile] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [isReceiverOnline, setIsReceiverOnline] = useState(false); // Track receiver's online status
+  const [isReceiverOnline, setIsReceiverOnline] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
   const isDark = theme === 'dark';
+    const isValidUUID = (otherUserId) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(otherUserId);
+};
+  const navigate = useNavigate();
 
-  // Fetch receiver's profile data
+     if (!otherUserId || !isValidUUID(otherUserId)) {
+      console.error('Invalid user ID format:', otherUserId);
+      showToast('Invalid profile ID', 'error');
+      navigate('/not-found', { state: { message: 'Invalid profile ID format.' } });
+      return;
+    }
+
+  // Fetch receiver's profile data and update on follow/unfollow
   useEffect(() => {
     const loadReceiverProfile = async () => {
       if (!isAuthenticated || !otherUserId) return;
       try {
         const profileData = await fetchProfile(otherUserId);
         setReceiverProfile(profileData);
-        setIsReceiverOnline(profileData.isOnline || false); // Initialize online status
+        setIsReceiverOnline(profileData.isOnline || false);
       } catch (error) {
         console.error('Error fetching receiver profile:', error);
         showToast('Failed to load receiver profile', 'error');
@@ -56,7 +68,7 @@ const MessageThread = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messageList]);
+  }, [messageList, isTyping]);
 
   // Handle WebSocket events
   useEffect(() => {
@@ -190,6 +202,11 @@ const MessageThread = () => {
     }
   };
 
+  const handleProfileUpdate = (updatedProfile) => {
+    setReceiverProfile(updatedProfile);
+    setIsReceiverOnline(updatedProfile.isOnline || false);
+  };
+
   if (!isAuthChecked) {
     return (
       <Box className="flex items-center justify-center min-h-screen">
@@ -222,11 +239,11 @@ const MessageThread = () => {
       </Box>
 
       {receiverProfile ? (
-        <Box className="flex items-center mb-4">
+        <Box className="mb-4">
           <ProfileHeader
             profile={receiverProfile}
             isOwnProfile={false}
-            onProfileUpdate={() => {}}
+            onProfileUpdate={handleProfileUpdate}
           />
           <Typography
             variant="caption"

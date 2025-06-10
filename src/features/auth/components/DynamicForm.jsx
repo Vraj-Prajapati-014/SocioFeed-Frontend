@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import Card from '../../../components/common/Card/Card';
@@ -18,15 +18,25 @@ const DynamicForm = ({
   additionalProps = {},
 }) => {
   const config = formConfig[formType] || {};
-  const initialValues = config.fields?.reduce((acc, field) => {
-    acc[field.name] = '';
-    return acc;
-  }, {});
+  // Memoize initialValues to prevent it from being recreated on every render
+  const initialValues = useMemo(
+    () =>
+      config.fields?.reduce((acc, field) => {
+        acc[field.name] = '';
+        return acc;
+      }, {}) || {},
+    [config.fields]
+  );
 
   const [formData, setFormData] = useState(initialValues);
   const [formErrors, setFormErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  // Debug logs for props that might cause re-renders
+  useEffect(() => {
+    console.log('DynamicForm - Props changed:', { successMessage, errors, formType });
+  }, [successMessage, errors, formType]);
 
   useEffect(() => {
     if (successMessage) {
@@ -59,14 +69,15 @@ const DynamicForm = ({
   useEffect(() => {
     const validationErrors = validateForm(formType, formData);
     setIsFormValid(Object.keys(validationErrors).length === 0);
-    if (hasSubmitted) {
-      setFormErrors(validationErrors);
-    }
-  }, [formData, formType, hasSubmitted]);
+    // Debug log to trace validation
+    console.log('DynamicForm - Validation useEffect:', { formData, validationErrors, isFormValid });
+  }, [formData, formType]);
 
   const handleChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Debug log to trace input changes
+    console.log('DynamicForm - handleChange:', { name, value, hasSubmitted });
   };
 
   const handleSubmit = e => {
@@ -98,7 +109,7 @@ const DynamicForm = ({
             name={field.name}
             type={field.type}
             label={field.label}
-            placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+            placeholder={field.placeholder}
             value={formData[field.name]}
             onChange={handleChange}
             error={formErrors[field.name] || ''}

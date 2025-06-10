@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Avatar } from '@mui/material';
 import Button from '../../../components/common/Button/Button';
@@ -12,10 +12,19 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate, hideButtons = f
   const navigate = useNavigate();
   const { follow, unfollow } = useFollow();
   const [isLoading, setIsLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(profile?.isFollowing || false);
+
+  // Sync local isFollowing state when profile prop changes
+  useEffect(() => {
+    setIsFollowing(profile?.isFollowing || false);
+  }, [profile?.isFollowing]);
 
   const handleFollowToggle = async () => {
     try {
       setIsLoading(true);
+      // Optimistically update the follow state
+      setIsFollowing(prev => !prev);
+
       const refreshProfile = async () => {
         const updatedProfile = await fetchProfile(profile.id);
         console.log('Fetched updated profile:', updatedProfile);
@@ -24,13 +33,15 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate, hideButtons = f
         }
       };
 
-      if (profile.isFollowing) {
+      if (isFollowing) {
         await unfollow(profile.id, refreshProfile);
       } else {
         await follow(profile.id, refreshProfile);
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
+      // Revert optimistic update on error
+      setIsFollowing(prev => !prev);
     } finally {
       setIsLoading(false);
     }
@@ -45,15 +56,15 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate, hideButtons = f
   };
 
   return (
-    <Box className="flex flex-col md:flex-row items-center md:items-start gap-6 p-4 border-b border-gray-200 dark:border-gray-700">
+    <Box className="flex flex-col md:flex-row items-start gap-4 p-4 border-b border-gray-200 dark:border-gray-700">
       <Avatar
         src={profile?.avatarUrl || '/default-avatar.png'}
         alt={profile?.username}
-        className="w-24 h-24 md:w-32 md:h-32 border-2 border-gray-300 dark:border-gray-600"
+        className="w-20 h-20 md:w-24 md:h-24 border-2 border-gray-300 dark:border-gray-600"
       />
       <Box className="flex-1">
-        <Box className="flex items-center justify-between mb-2">
-          <Typography variant="h5" className="font-semibold text-gray-900 dark:text-gray-100">
+        <Box className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+          <Typography variant="h6" className="font-semibold text-gray-900 dark:text-gray-100">
             {profile?.username}
           </Typography>
           {!hideButtons && (
@@ -70,16 +81,16 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate, hideButtons = f
                 <>
                   <FollowButton
                     userId={profile.id}
-                    isFollowing={profile.isFollowing}
+                    isFollowing={isFollowing}
                     followsYou={false}
                     onFollowChange={handleFollowToggle}
-                    isLoading={isLoading} // Pass isLoading to FollowButton
+                    isLoading={isLoading}
                   />
-                  {profile.isFollowing !== null && (
+                  {isFollowing !== null && (
                     <MessageButton
                       userId={profile.id}
                       username={profile.username}
-                      disabled={!profile.isFollowing}
+                      disabled={!isFollowing}
                     />
                   )}
                 </>
@@ -87,7 +98,7 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate, hideButtons = f
             </Box>
           )}
         </Box>
-        <Box className="flex gap-6 mb-4">
+        <Box className="flex gap-4 sm:gap-6 mb-3">
           <Typography
             className="text-gray-700 dark:text-gray-300 cursor-pointer"
             onClick={handleFollowersClick}

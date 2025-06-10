@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { Box, ListItem, ListItemAvatar, ListItemText, Avatar, Typography, IconButton, TextField, Button } from '@mui/material';
+import { Box, ListItem, ListItemAvatar, ListItemText, Avatar, Typography, IconButton } from '@mui/material';
 import { Favorite, FavoriteBorder, Delete, Edit } from '@mui/icons-material';
+import Button from '../../../components/common/Button/Button'; 
+import Input from '../../../components/common/Input/Input'; 
+import Spinner from '../../../components/common/Spinner/Spinner'; 
 import { useComments } from '../hooks/useComments';
 import ThemeContext from '../../../utils/context/ThemeContext';
 
@@ -38,7 +41,7 @@ const Comment = ({ comment, postId, fetchPosts, user, level = 0 }) => {
   };
 
   return (
-    <Box className={level > 0 ? 'ml-8 pl-4 border-l-2 border-gray-200 dark:border-gray-700' : ''} sx={{ mb: 2 }}>
+    <Box className={level > 0 ? 'ml-8 pl-4' : ''} sx={{ mb: 2 }}>
       <ListItem alignItems="flex-start">
         <ListItemAvatar>
           <Avatar src={comment.user?.avatarUrl || '/default-avatar.png'} alt={comment.user?.username || 'Unknown'} />
@@ -53,30 +56,27 @@ const Comment = ({ comment, postId, fetchPosts, user, level = 0 }) => {
             <>
               {isEditing ? (
                 <Box>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={2}
+                  <Input
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    variant="outlined"
-                    size="small"
+                    multiline
+                    rows={2}
+                    placeholder="Edit your comment..."
                     disabled={loading.edit[comment.id]}
+                    className="mb-2"
                   />
-                  <Box className="mt-2">
+                  <Box className="mt-2 flex gap-2">
                     <Button
                       onClick={handleSaveEdit}
-                      variant="contained"
                       size="small"
                       disabled={loading.edit[comment.id] || !editContent.trim()}
                     >
-                      Save
+                      {loading.edit[comment.id] ? <Spinner size="small" /> : 'Save'}
                     </Button>
                     <Button
                       onClick={handleCancelEdit}
-                      variant="outlined"
                       size="small"
-                      className="ml-2"
+                      variant="secondary"
                       disabled={loading.edit[comment.id]}
                     >
                       Cancel
@@ -97,7 +97,9 @@ const Comment = ({ comment, postId, fetchPosts, user, level = 0 }) => {
                   onClick={handleLikeToggle}
                   disabled={loading.like[comment.id]}
                 >
-                  {comment.hasLiked ? (
+                  {loading.like[comment.id] ? (
+                    <Spinner size="small" />
+                  ) : comment.hasLiked ? (
                     <Favorite className="text-red-500" />
                   ) : (
                     <FavoriteBorder className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
@@ -115,42 +117,42 @@ const Comment = ({ comment, postId, fetchPosts, user, level = 0 }) => {
                       <Edit className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
                     </IconButton>
                     <IconButton size="small" onClick={handleDelete} disabled={loading.delete[comment.id]}>
-                      <Delete className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
+                      {loading.delete[comment.id] ? (
+                        <Spinner size="small" />
+                      ) : (
+                        <Delete className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
+                      )}
                     </IconButton>
                   </>
                 )}
               </Box>
               {showReplyInput && (
                 <Box className="mt-2">
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={2}
+                  <Input
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
+                    multiline
+                    rows={2}
                     placeholder="Write a reply..."
-                    variant="outlined"
-                    size="small"
                     disabled={loading.create}
+                    className="mb-2"
                   />
-                  <Box className="mt-2">
+                  <Box className="mt-2 flex gap-2">
                     <Button
                       onClick={() => {
                         handleCreateComment(replyContent, comment.id);
                         setReplyContent('');
                         setShowReplyInput(false);
                       }}
-                      variant="contained"
                       size="small"
                       disabled={loading.create || !replyContent.trim()}
                     >
-                      Submit
+                      {loading.create ? <Spinner size="small" /> : 'Submit'}
                     </Button>
                     <Button
                       onClick={() => setShowReplyInput(false)}
-                      variant="outlined"
                       size="small"
-                      className="ml-2"
+                      variant="secondary"
                       disabled={loading.create}
                     >
                       Cancel

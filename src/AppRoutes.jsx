@@ -14,13 +14,14 @@ import SearchPage from './features/profile/pages/SearchPage';
 import FollowersPage from './features/profile/pages/FollowersPage';
 import FollowingPage from './features/profile/pages/FollowingPage';
 import ProtectedRoute from './ProtectedRoute';
-// import PlaceholderPage from './PlaceholderPage';
 import CreatePostPage from './features/post/pages/CreatePostPage';
 import PostDetail from './features/post/components/PostDetail';
 import SavedPostsPage from './features/post/pages/SavedPostsPage';
 import MessagesList from './features/messages/components/MessagesList';
 import MessageThread from './features/messages/components/MessageThread';
 import ActivityPage from './features/activity/pages/ActivityPage';
+import MainLayout from './components/layout/MainLayout';
+import NotFoundPage from './NotFoundPage';
 
 function AppRoutes() {
   return (
@@ -30,19 +31,13 @@ function AppRoutes() {
       <Route path={routeConstants.ROUTE_ACTIVATE} element={<ActivatePage />} />
       <Route path={routeConstants.ROUTE_FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
       <Route path={routeConstants.ROUTE_RESET_PASSWORD} element={<ResetPasswordPage />} />
-      {/* <Route
-        path={routeConstants.ROUTE_HOME}
-        element={
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        }
-      /> */}
       <Route
         path={routeConstants.ROUTE_DASHBOARD}
         element={
           <ProtectedRoute>
-            <HomePage />
+            <MainLayout>
+              <HomePage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -50,7 +45,9 @@ function AppRoutes() {
         path={`${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_BY_ID}`}
         element={
           <ProtectedRoute>
-            <ProfilePage />
+            <MainLayout>
+              <ProfilePage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -58,7 +55,9 @@ function AppRoutes() {
         path={routeConstants.ROUTE_EDIT_PROFILE}
         element={
           <ProtectedRoute>
-            <EditProfilePage />
+            <MainLayout>
+              <EditProfilePage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -66,7 +65,9 @@ function AppRoutes() {
         path={routeConstants.ROUTE_SEARCH}
         element={
           <ProtectedRoute>
-            <SearchPage />
+            <MainLayout>
+              <SearchPage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -74,7 +75,9 @@ function AppRoutes() {
         path={`${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWERS}`}
         element={
           <ProtectedRoute>
-            <FollowersPage />
+            <MainLayout>
+              <FollowersPage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -82,7 +85,9 @@ function AppRoutes() {
         path={`${PROFILE_CONSTANTS.PROFILE_BASE_URL}${PROFILE_CONSTANTS.PROFILE_FOLLOWING}`}
         element={
           <ProtectedRoute>
-            <FollowingPage />
+            <MainLayout>
+              <FollowingPage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -90,7 +95,9 @@ function AppRoutes() {
         path="/create"
         element={
           <ProtectedRoute>
-            <CreatePostPage />
+            <MainLayout>
+              <CreatePostPage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -98,7 +105,9 @@ function AppRoutes() {
         path="/posts/:postId"
         element={
           <ProtectedRoute>
-            <PostDetail />
+            <MainLayout>
+              <PostDetail />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -106,7 +115,9 @@ function AppRoutes() {
         path="/saved"
         element={
           <ProtectedRoute>
-            <SavedPostsPage />
+            <MainLayout>
+              <SavedPostsPage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -114,7 +125,9 @@ function AppRoutes() {
         path="/activity"
         element={
           <ProtectedRoute>
-            <ActivityPage />
+            <MainLayout>
+              <ActivityPage />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -122,7 +135,9 @@ function AppRoutes() {
         path="/messages/:id"
         element={
           <ProtectedRoute>
-            <MessageThread />
+            <MainLayout>
+              <MessageThread />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
@@ -130,11 +145,14 @@ function AppRoutes() {
         path="/messages"
         element={
           <ProtectedRoute>
-            <MessagesList />
+            <MainLayout>
+              <MessagesList />
+            </MainLayout>
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to={routeConstants.ROUTE_LOGIN} replace />} />
+      <Route path="*" element={<NotFoundPage/>} />
+      <Route path="/not-found" element={<NotFoundPage />} />
     </Routes>
   );
 }

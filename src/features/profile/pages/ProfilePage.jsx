@@ -8,11 +8,17 @@ import Spinner from '../../../components/common/Spinner/Spinner';
 import ErrorMessage from '../../../components/ErrorMessage/ErrorMessage';
 import useAuth from '../../auth/hooks/useAuth';
 import { routeConstants } from '../../auth/constants/routeConstants';
+import { showToast } from '../../../utils/helpers/toast';
+
 
 const ProfilePage = () => {
   const { id } = useParams();
   console.log('Profile ID:', id);
 
+  const isValidUUID = (id) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(id);
+};
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [profile, setProfile] = useState(null);
@@ -22,6 +28,14 @@ const ProfilePage = () => {
 
   // Fetch the initial profile data
   const loadProfile = async () => {
+
+     if (!id || !isValidUUID(id)) {
+      console.error('Invalid user ID format:', id);
+      showToast('Invalid profile ID', 'error');
+      navigate('/not-found', { state: { message: 'Invalid profile ID format.' } });
+      return;
+    }
+
     try {
       setIsLoading(true);
       const profileData = await fetchProfile(id);
