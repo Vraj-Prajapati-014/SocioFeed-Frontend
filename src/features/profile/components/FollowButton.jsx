@@ -1,10 +1,27 @@
 import Button from '../../../components/common/Button/Button';
+import { useNavigate } from 'react-router-dom';
 
-const FollowButton = ({ userId, isFollowing, followsYou, onFollowChange, isLoading }) => {
+const FollowButton = ({ userId, username, isFollowing, followsYou, onFollowChange, isLoading, showMessageButton = false }) => {
+  const navigate = useNavigate();
+
   if (isFollowing === null) {
     return null;
   }
 
+  // In SearchResults, if users follow each other, show a Message button instead
+  if (showMessageButton && isFollowing && followsYou) {
+    return (
+      <Button
+        onClick={() => navigate(`/messages/${userId}`, { state: { username } })}
+        size="small"
+        className="px-4 py-1 rounded-lg text-white font-medium transition-all duration-200 shadow-sm bg-green-500 hover:bg-green-600"
+      >
+        Message
+      </Button>
+    );
+  }
+
+  // Determine the button label based on follow relationship
   let buttonLabel;
   if (isFollowing) {
     buttonLabel = 'Unfollow';

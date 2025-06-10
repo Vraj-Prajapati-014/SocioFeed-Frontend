@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Box, IconButton, Drawer } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import Sidebar from './Sidebar';
@@ -18,10 +18,23 @@ const MainLayout = ({ children }) => {
     setMessagingOpen(!messagingOpen);
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMessagingOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const isDark = theme === 'dark';
 
   return (
-    <Box className={`flex min-h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
+    <Box className={`flex flex-row min-h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
       {/* Sidebar (Desktop) */}
       <Box component="nav" className="hidden md:block w-64 flex-shrink-0">
         <Sidebar />
@@ -64,13 +77,13 @@ const MainLayout = ({ children }) => {
             <MenuIcon />
           </IconButton>
         </Box>
-        <Box className="max-w-3xl mx-auto">{children}</Box>
+        <Box className="max-w-4xl mx-auto">{children}</Box>
       </Box>
 
       {/* Messaging Sidebar (Desktop) */}
       <Box
         component="aside"
-        className="hidden lg:block w-80 flex-shrink-0 border-l border-gray-200 dark:border-gray-700"
+        className="hidden lg:block w-80 flex-shrink-0 border-l border-gray-200 dark:border-gray-700 z-10"
       >
         <MessagingSidebar />
       </Box>

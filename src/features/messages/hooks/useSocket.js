@@ -46,7 +46,7 @@ const useSocket = () => {
       socket.off('disconnect', handleDisconnect);
       disconnectSocket();
     };
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated]);
 
   return { socket: getSocket(), isConnected };
 };

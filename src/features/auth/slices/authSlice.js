@@ -159,7 +159,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      state.isAuthChecked = false;
+      // state.isAuthChecked = false;
     },
     setAuthChecked: (state, action) => {
       state.isAuthChecked = action.payload;

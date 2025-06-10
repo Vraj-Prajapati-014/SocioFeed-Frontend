@@ -1,14 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react'; // Add useState for isLoading
 import { Box, Typography, Avatar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import InfiniteScroll from '../../../components/InfiniteScroll/InfiniteScroll';
 import SkeletonLoader from '../../../components/SkeletonLoader/SkeletonLoader';
 import ErrorMessage from '../../../components/ErrorMessage/ErrorMessage';
 import FollowButton from './FollowButton';
+import { useFollow } from '../hook/useFollow'; // Import useFollow
 
 const SearchResults = ({ data, fetchNextPage, hasNextPage, isLoading, isError, error, refetch }) => {
   const navigate = useNavigate();
+  const { follow, unfollow } = useFollow();
   const users = data?.pages?.flatMap(page => page.users) || [];
+  const [loadingStates, setLoadingStates] = useState({}); // Track loading state per user
+
+  const handleFollowToggle = (userId, isFollowing) => async () => {
+    try {
+      setLoadingStates(prev => ({ ...prev, [userId]: true }));
+      if (isFollowing) {
+        await unfollow(userId);
+      } else {
+        await follow(userId);
+      }
+      // Refetch the search results to update isFollowing and followsYou
+      await refetch();
+    } catch (error) {
+      console.error('Error toggling follow in search results:', error);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [userId]: false }));
+    }
+  };
 
   if (isLoading) {
     return <SkeletonLoader type="list" count={3} />;
@@ -42,12 +62,15 @@ const SearchResults = ({ data, fetchNextPage, hasNextPage, isLoading, isError, e
                 />
                 <Typography>{user.username}</Typography>
               </Box>
-              {/* Only render FollowButton if isFollowing is not null */}
               {user.isFollowing !== null && (
                 <FollowButton
                   userId={user.id}
+                  username={user.username} // Pass username for Message button navigation
                   isFollowing={user.isFollowing}
-                  followsYou={user.followsYou} // Pass followsYou to FollowButton
+                  followsYou={user.followsYou}
+                  onFollowChange={handleFollowToggle(user.id, user.isFollowing)}
+                  isLoading={loadingStates[user.id] || false}
+                  showMessageButton={true} // Enable Message button behavior in SearchResults
                 />
               )}
             </Box>

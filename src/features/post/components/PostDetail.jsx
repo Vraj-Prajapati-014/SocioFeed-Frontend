@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Typography, Avatar, TextField, Button, List, IconButton } from '@mui/material';
+import { Box, Typography, Avatar, List, IconButton } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
 import { getPostById } from '../services/postService';
 import PostCarousel from './PostCarousel';
 import PostInteraction from './PostInteraction';
 import Comment from './Comment';
-import Spinner from '../../../components/common/Spinner/Spinner';
-import ErrorMessage from '../../../components/ErrorMessage/ErrorMessage';
+import Input from '../../../components/common/Input/Input'; // Custom Input
+import Spinner from '../../../components/common/Spinner/Spinner'; // Custom Spinner
+import Button from '../../../components/common/Button/Button'; // Custom Button
 import useAuth from '../../auth/hooks/useAuth';
 import { useComments } from '../hooks/useComments';
 import ThemeContext from '../../../utils/context/ThemeContext';
@@ -76,6 +77,11 @@ const PostDetail = () => {
     );
   }
 
+  // Log commentError for debugging
+  if (commentError) {
+    console.error('PostDetail - Comment creation error:', commentError);
+  }
+
   return (
     <Box className="max-w-5xl mx-auto py-6 flex flex-col md:flex-row gap-4">
       <Box className="flex-1">
@@ -110,13 +116,13 @@ const PostDetail = () => {
 
         <Box className="flex-1 overflow-y-auto p-4">
           {post.content && (
-  <Typography
-    variant="body1"
-    className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}
-    sx={{ mb: 2 }}
-    dangerouslySetInnerHTML={{ __html: post.content }}
-  />
-)}
+            <Typography
+              variant="body1"
+              className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}
+              sx={{ mb: 2 }}
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          )}
           {post.comments?.length > 0 ? (
             <List>
               {post.comments.map((comment) => (
@@ -142,22 +148,19 @@ const PostDetail = () => {
         <Box className="p-4 border-t border-gray-200 dark:border-gray-700">
           <PostInteraction post={post} />
           <Box className="mt-2">
-            <TextField
-              fullWidth
-              multiline
-              rows={1}
+            <Input
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add a comment..."
-              disabled={commentLoading}
-              variant="outlined"
-              size="small"
+              disabled={commentLoading.create}
+              multiline
+              rows={1}
             />
             <Button
-              variant="contained"
               onClick={handleSubmitComment}
-              disabled={commentLoading || !newComment.trim()}
+              disabled={false}
               className="mt-2"
+              sx={{ display: 'block' }}
             >
               Post
             </Button>

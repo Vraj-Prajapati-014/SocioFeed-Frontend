@@ -212,3 +212,13 @@ export const getSavedPosts = async (page = 1, limit = 10) => {
     throw new Error(error.response?.data?.message || 'Failed to fetch saved posts');
   }
 };
+export const editComment = async (commentId, content) => {
+  try {
+    const response = await axiosInstance.put(`${POST_CONSTANTS.POSTS_BASE_URL}/comments/${commentId}`, { content });
+    console.log('postService - Edit comment response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('postService - Error editing comment:', error);
+    throw new Error(error.response?.data?.message || 'Failed to edit comment');
+  }
+};

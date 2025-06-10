@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Box, ListItem, ListItemAvatar, ListItemText, Avatar, Typography, IconButton, TextField } from '@mui/material';
-import { Favorite, FavoriteBorder, Delete } from '@mui/icons-material';
+import { Box, ListItem, ListItemAvatar, ListItemText, Avatar, Typography, IconButton, TextField, Button } from '@mui/material';
+import { Favorite, FavoriteBorder, Delete, Edit } from '@mui/icons-material';
 import { useComments } from '../hooks/useComments';
 import ThemeContext from '../../../utils/context/ThemeContext';
 
@@ -8,17 +8,33 @@ const Comment = ({ comment, postId, fetchPosts, user, level = 0 }) => {
   const { theme } = React.useContext(ThemeContext);
   const [replyContent, setReplyContent] = useState('');
   const [showReplyInput, setShowReplyInput] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const { handleCreateComment, handleLikeComment, handleDeleteComment, error, loading } = useComments(postId, fetchPosts);
+  const { handleCreateComment, handleLikeComment, handleDeleteComment, handleEditComment, error, loading } = useComments(postId, fetchPosts);
 
   const handleLikeToggle = () => {
-    handleLikeComment(comment.id, comment.hasLiked, comment.likesCount);
+    handleLikeComment(comment.id, comment.hasLiked);
   };
 
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this comment?')) {
       handleDeleteComment(comment.id);
     }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = () => {
+    handleEditComment(comment.id, editContent);
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditContent(comment.content);
+    setIsEditing(false);
   };
 
   return (
@@ -35,14 +51,52 @@ const Comment = ({ comment, postId, fetchPosts, user, level = 0 }) => {
           }
           secondary={
             <>
-              <Typography
-                variant="body2"
-                className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}
-              >
-                {comment.content}
-              </Typography>
+              {isEditing ? (
+                <Box>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={2}
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    variant="outlined"
+                    size="small"
+                    disabled={loading.edit[comment.id]}
+                  />
+                  <Box className="mt-2">
+                    <Button
+                      onClick={handleSaveEdit}
+                      variant="contained"
+                      size="small"
+                      disabled={loading.edit[comment.id] || !editContent.trim()}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      onClick={handleCancelEdit}
+                      variant="outlined"
+                      size="small"
+                      className="ml-2"
+                      disabled={loading.edit[comment.id]}
+                    >
+                      Cancel
+                    </Button>
+                  </Box>
+                </Box>
+              ) : (
+                <Typography
+                  variant="body2"
+                  className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}
+                >
+                  {comment.content}
+                </Typography>
+              )}
               <Box className="flex gap-2 mt-2">
-                <IconButton size="small" onClick={handleLikeToggle} disabled={loading}>
+                <IconButton
+                  size="small"
+                  onClick={handleLikeToggle}
+                  disabled={loading.like[comment.id]}
+                >
                   {comment.hasLiked ? (
                     <Favorite className="text-red-500" />
                   ) : (
@@ -56,9 +110,14 @@ const Comment = ({ comment, postId, fetchPosts, user, level = 0 }) => {
                   <Typography variant="caption">Reply</Typography>
                 </IconButton>
                 {comment.userId === user?.id && (
-                  <IconButton size="small" onClick={handleDelete}>
-                    <Delete className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
-                  </IconButton>
+                  <>
+                    <IconButton size="small" onClick={handleEdit} disabled={loading.edit[comment.id]}>
+                      <Edit className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
+                    </IconButton>
+                    <IconButton size="small" onClick={handleDelete} disabled={loading.delete[comment.id]}>
+                      <Delete className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} />
+                    </IconButton>
+                  </>
                 )}
               </Box>
               {showReplyInput && (
@@ -72,9 +131,10 @@ const Comment = ({ comment, postId, fetchPosts, user, level = 0 }) => {
                     placeholder="Write a reply..."
                     variant="outlined"
                     size="small"
+                    disabled={loading.create}
                   />
                   <Box className="mt-2">
-                    <IconButton
+                    <Button
                       onClick={() => {
                         handleCreateComment(replyContent, comment.id);
                         setReplyContent('');
@@ -82,12 +142,19 @@ const Comment = ({ comment, postId, fetchPosts, user, level = 0 }) => {
                       }}
                       variant="contained"
                       size="small"
+                      disabled={loading.create || !replyContent.trim()}
                     >
-                      <Typography variant="caption">Submit</Typography>
-                    </IconButton>
-                    <IconButton onClick={() => setShowReplyInput(false)} size="small" className="ml-2">
-                      <Typography variant="caption">Cancel</Typography>
-                    </IconButton>
+                      Submit
+                    </Button>
+                    <Button
+                      onClick={() => setShowReplyInput(false)}
+                      variant="outlined"
+                      size="small"
+                      className="ml-2"
+                      disabled={loading.create}
+                    >
+                      Cancel
+                    </Button>
                   </Box>
                 </Box>
               )}

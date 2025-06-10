@@ -25,7 +25,7 @@ const MessagingSidebar = ({ onNavClick }) => {
 
   if (!isAuthChecked) {
     return (
-      <div className={`h-screen p-4 overflow-y-auto ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className={`h-screen p-4 overflow-y-auto sticky top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
         <Typography className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Checking authentication...
         </Typography>
@@ -35,7 +35,7 @@ const MessagingSidebar = ({ onNavClick }) => {
 
   if (!isAuthenticated) {
     return (
-      <div className={`h-screen p-4 overflow-y-auto ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className={`h-screen p-4 overflow-y-auto sticky top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
         <Typography className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           Please log in to view conversations.
         </Typography>
@@ -45,9 +45,7 @@ const MessagingSidebar = ({ onNavClick }) => {
 
   return (
     <div
-      className={`h-screen p-4 overflow-y-auto ${
-        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      }`}
+      className={`h-screen p-4 overflow-y-auto sticky top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
     >
       <div className="mb-4 flex items-center justify-between">
         <Typography
@@ -56,14 +54,6 @@ const MessagingSidebar = ({ onNavClick }) => {
         >
           Messages
         </Typography>
-        {/* <button
-          className={`text-sm font-medium transition-colors duration-200 ${
-            isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'
-          }`}
-          onClick={() => navigate('/messages')}
-        >
-          See all
-        </button> */}
       </div>
       {isLoading ? (
         <Typography className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
