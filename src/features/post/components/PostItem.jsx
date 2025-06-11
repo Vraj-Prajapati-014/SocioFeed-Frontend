@@ -25,9 +25,9 @@ const PostItem = ({ post, hideHeader = false }) => {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
+    // if (window.confirm('Are you sure you want to delete this post?')) {
       handleDeletePost(post.id);
-    }
+    // }
   };
 
   if (!post?.author) {

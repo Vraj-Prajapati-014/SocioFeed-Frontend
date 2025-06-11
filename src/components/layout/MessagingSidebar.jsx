@@ -47,6 +47,29 @@ const MessagingSidebar = ({ onNavClick }) => {
     <div
       className={`h-screen p-4 overflow-y-auto sticky top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
     >
+      {/* Logged-in user info */}
+      <div className="mb-6 flex items-center p-3 rounded-lg">
+        <Avatar
+          src={user?.avatarUrl || '/default-avatar.png'}
+          alt={user?.username}
+          className="w-12 h-12 mr-3 rounded-full object-cover"
+        />
+        <div className="flex-1">
+          <Typography
+            variant="subtitle1"
+            className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}
+          >
+            {user?.username || 'User'}
+          </Typography>
+          <Typography
+                      variant="body1"
+                      component="div"
+                      className={theme === 'dark' ? 'text-gray-300' : 'text-gray-800'}
+                      dangerouslySetInnerHTML={{ __html:user.bio }}
+                    />
+        </div>
+      </div>
+
       <div className="mb-4 flex items-center justify-between">
         <Typography
           variant="h6"

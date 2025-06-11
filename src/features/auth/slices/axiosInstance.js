@@ -3,16 +3,31 @@ import { AUTH_CONSTANTS } from '../constants/authConstants';
 import store from '../../../store/store';
 import { refreshTokenAsync } from './authSlice';
 
+// Flag to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 const axiosInstance = axios.create({
   baseURL: AUTH_CONSTANTS.API_BASE_URL,
-  withCredentials: true, // Keep for refresh token cookie, if used
+  withCredentials: true,
 });
 
 // Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
     const state = store.getState();
-    const token = state.auth.token; // Get token from Redux
+    const token = state.auth.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -40,22 +55,39 @@ axiosInstance.interceptors.response.use(
       !originalRequest._retry &&
       originalRequest.url !== AUTH_CONSTANTS.AUTH_REFRESH
     ) {
+      if (isRefreshing) {
+        // Queue the request while refreshing
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return axiosInstance(originalRequest);
+          })
+          .catch(err => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
         console.log('Attempting token refresh');
         const result = await store.dispatch(refreshTokenAsync());
         if (refreshTokenAsync.fulfilled.match(result)) {
           console.log('Token refresh successful');
           const newToken = store.getState().auth.token;
+          processQueue(null, newToken);
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return axiosInstance(originalRequest);
         }
         throw new Error('Token refresh failed');
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
-        // Redirect to login on failed refresh
-        window.location.href = '/login';
+        processQueue(refreshError, null);
+        // Let refreshTokenAsync.rejected handle the state update
         return Promise.reject(errorResponse);
+      } finally {
+        isRefreshing = false;
       }
     }
 

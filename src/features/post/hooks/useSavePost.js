@@ -8,15 +8,12 @@ export const useSavePost = (postId, userId) => {
   const saveMutation = useMutation({
     mutationFn: () => savePost(postId),
     onMutate: async () => {
-      // Cancel any ongoing queries to prevent race conditions
       await queryClient.cancelQueries({ queryKey: ['posts', userId] });
       await queryClient.cancelQueries({ queryKey: ['post', postId] });
 
-      // Snapshot the previous post data
       const previousPostInFeed = queryClient.getQueryData(['posts', userId]);
       const previousPostDetail = queryClient.getQueryData(['post', postId]);
 
-      // Optimistically update the post in the home feed
       if (previousPostInFeed) {
         queryClient.setQueryData(['posts', userId], (old) => {
           if (!old || !old.posts) return old;
@@ -29,7 +26,6 @@ export const useSavePost = (postId, userId) => {
         });
       }
 
-      // Optimistically update the post in the post detail page (if applicable)
       if (previousPostDetail) {
         queryClient.setQueryData(['post', postId], (old) => {
           if (!old) return old;
@@ -40,7 +36,6 @@ export const useSavePost = (postId, userId) => {
       return { previousPostInFeed, previousPostDetail };
     },
     onError: (error, variables, context) => {
-      // Revert the optimistic update on error
       if (context.previousPostInFeed) {
         queryClient.setQueryData(['posts', userId], context.previousPostInFeed);
       }
@@ -50,7 +45,6 @@ export const useSavePost = (postId, userId) => {
       showToast(error.message || 'Failed to save post', 'error');
     },
     onSuccess: (data) => {
-      // Update cache with backend response
       queryClient.setQueryData(['posts', userId], (old) => {
         if (!old || !old.posts) return old;
         return {
@@ -64,12 +58,10 @@ export const useSavePost = (postId, userId) => {
         if (!old) return old;
         return { ...old, post: { ...old.post, isSaved: data.isSaved } };
       });
-      // Invalidate queries to refetch fresh data
       queryClient.invalidateQueries({ queryKey: ['posts', userId] });
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
       queryClient.invalidateQueries({ queryKey: ['savedPosts', userId] });
       showToast(data.message, 'success');
-      return data.isSaved; // Return isSaved for PostInteraction to update state
     },
   });
 
@@ -113,7 +105,6 @@ export const useSavePost = (postId, userId) => {
       showToast(error.message || 'Failed to unsave post', 'error');
     },
     onSuccess: (data) => {
-      // Update cache with backend response
       queryClient.setQueryData(['posts', userId], (old) => {
         if (!old || !old.posts) return old;
         return {
@@ -131,22 +122,21 @@ export const useSavePost = (postId, userId) => {
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
       queryClient.invalidateQueries({ queryKey: ['savedPosts', userId] });
       showToast(data.message, 'success');
-      return data.isSaved; // Return isSaved for PostInteraction to update state
     },
   });
 
   const handleSaveToggle = async (isSaved) => {
     if (isSaved) {
-      const newIsSaved = await unsaveMutation.mutateAsync();
-      return newIsSaved;
+      const data = await unsaveMutation.mutateAsync();
+      return data.isSaved; // Return boolean isSaved
     } else {
-      const newIsSaved = await saveMutation.mutateAsync();
-      return newIsSaved;
+      const data = await saveMutation.mutateAsync();
+      return data.isSaved; // Return boolean isSaved
     }
   };
 
   return {
     handleSaveToggle,
-    isLoading: saveMutation.isLoading || unsaveMutation.isLoading,
+    isLoading: saveMutation.isPending || unsaveMutation.isPending, // Use isPending for React Query v5
   };
 };

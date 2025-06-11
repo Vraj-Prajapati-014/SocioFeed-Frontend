@@ -29,6 +29,11 @@ const Sidebar = ({ onNavClick }) => {
     if (onNavClick) onNavClick();
   };
 
+  const handleSocioFeedClick = () => {
+    navigate(routeConstants.ROUTE_DASHBOARD);
+    if (onNavClick) onNavClick();
+  };
+
   const navItems = [
     { text: 'Home', icon: <Home />, path: routeConstants.ROUTE_DASHBOARD },
     { text: 'Search', icon: <Search />, path: routeConstants.ROUTE_SEARCH },
@@ -56,7 +61,12 @@ const Sidebar = ({ onNavClick }) => {
       }`}
     >
       <div className="mb-6">
-        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>SocioFeed</h1>
+        <h1
+          className={`text-2xl font-bold cursor-pointer ${isDark ? 'text-white' : 'text-black'}`}
+          onClick={handleSocioFeedClick}
+        >
+          SocioFeed
+        </h1>
       </div>
       <List>
         {navItems.map((item) => (

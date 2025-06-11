@@ -13,6 +13,15 @@ const initialState = {
   token: null,
 };
 
+// Helper to sync sessionStorage with Redux state
+const syncSessionStorage = (isAuthenticated) => {
+  if (isAuthenticated) {
+    sessionStorage.setItem('isAuthenticated', 'true');
+  } else {
+    sessionStorage.removeItem('isAuthenticated');
+  }
+};
+
 export const registerAsync = createAsyncThunk(
   'auth/register',
   async (formData, { rejectWithValue }) => {
@@ -28,7 +37,6 @@ export const registerAsync = createAsyncThunk(
 export const loginAsync = createAsyncThunk('auth/login', async (formData, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.post(AUTH_CONSTANTS.AUTH_LOGIN, formData);
-    sessionStorage.setItem('isAuthenticated', 'true');
     return response.data;
   } catch (err) {
     return rejectWithValue(err.response?.data || { message: 'Login failed' });
@@ -42,7 +50,6 @@ export const activateAccountAsync = createAsyncThunk(
       const response = await axiosInstance.post(
         AUTH_CONSTANTS.AUTH_ACTIVATE.replace(':token', token)
       );
-      sessionStorage.setItem('isAuthenticated', 'true');
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || { message: 'Activation failed' });
@@ -92,7 +99,6 @@ export const resetPasswordAsync = createAsyncThunk(
 export const logoutAsync = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
   try {
     const response = await axiosInstance.post(AUTH_CONSTANTS.AUTH_LOGOUT);
-    sessionStorage.removeItem('isAuthenticated');
     return response.data;
   } catch (err) {
     return rejectWithValue(err.response?.data || { message: 'Logout failed' });
@@ -103,26 +109,23 @@ export const getMeAsync = createAsyncThunk(
   'auth/getMe',
   async (_, { rejectWithValue, dispatch }) => {
     try {
-      // Check sessionStorage before making API call
-      if (sessionStorage.getItem('isAuthenticated') !== 'true') {
-        console.log('No authenticated session, skipping getMe API call'); // Debug log
-        dispatch(setAuthChecked(true)); // Ensure isAuthChecked is set
-        return null; // Resolve with null to indicate no user
-      }
-
-      console.log('Fetching user with getMe'); // Debug log
+      console.log('Fetching user with getMe');
       const res = await axiosInstance.get(AUTH_CONSTANTS.AUTH_ME);
-      sessionStorage.setItem('isAuthenticated', 'true');
       return res.data.user;
     } catch (err) {
-      console.error('getMe error:', err.response?.data); // Debug log
-      sessionStorage.removeItem('isAuthenticated');
-      dispatch(setAuthChecked(true)); // Ensure isAuthChecked is set
-      return rejectWithValue({
-        message: err.response?.data?.message || 'Something went wrong',
-        status: err.response?.status || 500,
-        suppressToast: !err.response,
-      });
+      console.error('getMe error:', err);
+      // If the error is a 401, the interceptor will handle it, so we don't reject here
+      // Only reject for other errors (e.g., 403, 500)
+      if (err.status !== 401) {
+        dispatch(setAuthChecked(true));
+        return rejectWithValue({
+          message: err.message || 'Something went wrong',
+          status: err.status || 500,
+          suppressToast: !err.data,
+        });
+      }
+      // If the interceptor fails to refresh the token, it will reject the promise
+      throw err; // Let the interceptor's rejection propagate
     }
   }
 );
@@ -131,18 +134,15 @@ export const refreshTokenAsync = createAsyncThunk(
   'auth/refreshToken',
   async (_, { rejectWithValue, dispatch }) => {
     try {
-      console.log('Calling /refresh endpoint'); // Debug log
+      console.log('Calling /refresh endpoint');
       const response = await axiosInstance.post(AUTH_CONSTANTS.AUTH_REFRESH);
-      sessionStorage.setItem('isAuthenticated', 'true');
-      dispatch(setAuthChecked(true)); // Ensure isAuthChecked is set
       return response.data;
     } catch (err) {
-      console.error('Refresh token error:', err.response?.data); // Debug log
-      sessionStorage.removeItem('isAuthenticated');
-      dispatch(setAuthChecked(true)); // Ensure isAuthChecked is set
+      console.error('Refresh token error:', err);
+      dispatch(setAuthChecked(true));
       return rejectWithValue({
-        message: err.response?.data?.message || 'Token refresh failed',
-        status: err.response?.status || 401,
+        message: err.message || 'Token refresh failed',
+        status: err.status || 401,
       });
     }
   }
@@ -159,7 +159,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      // state.isAuthChecked = false;
+      syncSessionStorage(false);
     },
     setAuthChecked: (state, action) => {
       state.isAuthChecked = action.payload;
@@ -177,6 +177,7 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
         state.successMessage = 'Logged out successfully';
+        syncSessionStorage(false);
       })
       .addCase(logoutAsync.rejected, (state, action) => {
         state.loading = false;
@@ -207,6 +208,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.successMessage = 'Login successful';
+        syncSessionStorage(true);
       })
       .addCase(loginAsync.rejected, (state, action) => {
         state.loading = false;
@@ -226,6 +228,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.successMessage = 'Account activated successfully';
+        syncSessionStorage(true);
       })
       .addCase(activateAccountAsync.rejected, (state, action) => {
         state.loading = false;
@@ -276,9 +279,10 @@ const authSlice = createSlice({
       })
       .addCase(getMeAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload; // null if no session, user object if authenticated
-        state.isAuthenticated = !!action.payload; // Set based on payload
+        state.user = action.payload;
+        state.isAuthenticated = !!action.payload;
         state.isAuthChecked = true;
+        syncSessionStorage(!!action.payload);
       })
       .addCase(getMeAsync.rejected, (state, action) => {
         state.loading = false;
@@ -286,6 +290,7 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
         state.isAuthChecked = true;
+        syncSessionStorage(false);
         if (!action.payload.suppressToast) {
           state.errors = { message: action.payload.message };
         }
@@ -300,6 +305,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.isAuthChecked = true;
+        syncSessionStorage(true);
       })
       .addCase(refreshTokenAsync.rejected, (state, action) => {
         state.loading = false;
@@ -308,6 +314,7 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthChecked = true;
         state.errors = { message: action.payload.message };
+        syncSessionStorage(false);
       });
   },
 });
