@@ -11,7 +11,6 @@ const SavedPostsPage = () => {
   const { user } = useAuth();
   const [limit] = useState(10);
 
-  // Fetch user profile
   const { data: profile, isLoading: isProfileLoading, error: profileError } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: () => fetchProfile(user?.id),
@@ -76,17 +75,7 @@ const SavedPostsPage = () => {
 
   return (
     <Box className="max-w-2xl mx-auto p-4">
-      {/* Profile Header */}
-      {/* {profile && (
-        <ProfileHeader
-          profile={profile}
-          isOwnProfile={true}
-          onProfileUpdate={(updatedProfile) => {
-            // Update profile in cache if needed
-            console.log('Profile updated:', updatedProfile);
-          }}
-        />
-      )} */}
+
 
       <Typography variant="h5" className="my-4 font-semibold">
         Saved Posts

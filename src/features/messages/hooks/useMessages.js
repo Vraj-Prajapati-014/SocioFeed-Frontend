@@ -8,7 +8,7 @@ export const useMessages = () => {
   const fetchConversationsData = async () => {
     const conversations = await fetchConversationsService();
     console.log('useMessages - Fetched conversations:', conversations);
-    return conversations; // Already an array: [{ user: {...}, lastMessage: "...", lastMessageAt: "..." }, ...]
+    return conversations; 
   };
 
   const query = useQuery({

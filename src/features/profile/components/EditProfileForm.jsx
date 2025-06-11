@@ -19,7 +19,6 @@ const EditProfileForm = ({ profile, onSuccess }) => {
   const [editor, setEditor] = useState(null);
   const { mutate: updateProfile, isLoading } = useUpdateProfile();
 
-  // Calculate bio length (strip HTML tags for accurate character count)
   const getTextContentLength = (html) => {
     const div = document.createElement('div');
     div.innerHTML = html;
@@ -28,7 +27,6 @@ const EditProfileForm = ({ profile, onSuccess }) => {
 
   const bioLength = getTextContentLength(bio);
 
-  // Update bio when editor changes, respecting max length
   const handleEditorUpdate = (html) => {
     const textLength = getTextContentLength(html);
     if (textLength <= PROFILE_CONSTANTS.MAX_BIO_LENGTH) {
@@ -95,7 +93,7 @@ const EditProfileForm = ({ profile, onSuccess }) => {
             Edit Profile
           </Typography>
 
-          {/* Username Field */}
+       
           <Box className="flex flex-col space-y-2">
             <Typography
               className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
@@ -126,7 +124,7 @@ const EditProfileForm = ({ profile, onSuccess }) => {
             </Typography>
           </Box>
 
-          {/* Bio Field with Tiptap Editor */}
+          
           <Box className="flex flex-col space-y-2">
             <Typography
               className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
@@ -152,8 +150,6 @@ const EditProfileForm = ({ profile, onSuccess }) => {
               {bioLength}/{PROFILE_CONSTANTS.MAX_BIO_LENGTH}
             </Typography>
           </Box>
-
-          {/* Submit Button (Centered) */}
           <Box className="flex justify-center">
             <Button
               type="submit"

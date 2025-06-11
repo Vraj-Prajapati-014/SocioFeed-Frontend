@@ -8,7 +8,6 @@ export const usePosts = (queryKey = ['posts', 'all'], invalidateQueries = []) =>
   const [error, setError] = useState(null);
   const queryClient = useQueryClient();
 
-  // Fetch posts with infinite scrolling
   const fetchPostsQuery = useInfiniteQuery({
     queryKey,
     queryFn: async ({ pageParam = 1 }) => {
@@ -28,13 +27,12 @@ export const usePosts = (queryKey = ['posts', 'all'], invalidateQueries = []) =>
     setError(null);
     try {
       await deletePost(postId);
-      // Invalidate relevant queries
+   
       await Promise.all(
         invalidateQueries.map(key =>
           queryClient.invalidateQueries({ queryKey: key })
         )
       );
-      // Refetch posts for the current query
       await queryClient.invalidateQueries({ queryKey });
       showToast('Post deleted', 'success');
     } catch (err) {

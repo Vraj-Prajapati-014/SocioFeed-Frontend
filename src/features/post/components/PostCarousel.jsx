@@ -21,7 +21,6 @@ const PostCarousel = ({ images }) => {
 
   return (
     <Box className="relative w-full h-96 overflow-hidden rounded-lg">
-      {/* Media Container */}
       <Box className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
         {currentMedia.mediaType === 'video' ? (
           <video
@@ -40,7 +39,6 @@ const PostCarousel = ({ images }) => {
         )}
       </Box>
 
-      {/* Navigation Arrows (only shown if more than one item) */}
       {images.length > 1 && (
         <>
           <IconButton
@@ -60,7 +58,6 @@ const PostCarousel = ({ images }) => {
         </>
       )}
 
-      {/* Fraction Indicator with Arrows (only shown if more than one item) */}
       {images.length > 1 && (
         <Box className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-2">
           {/* Left Arrow */}
@@ -72,7 +69,6 @@ const PostCarousel = ({ images }) => {
             <ArrowBackIos fontSize="small" />
           </IconButton>
 
-          {/* Fraction Indicator */}
           <Typography
             variant="caption"
             className="text-white bg-gray-800 bg-opacity-70 px-3 py-1 rounded-full"
@@ -80,7 +76,6 @@ const PostCarousel = ({ images }) => {
             {currentIndex + 1}/{images.length}
           </Typography>
 
-          {/* Right Arrow */}
           <IconButton
             onClick={handleNext}
             className="bg-gray-800 bg-opacity-70 text-white rounded-full hover:bg-opacity-90 transition-opacity"

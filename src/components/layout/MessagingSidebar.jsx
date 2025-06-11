@@ -47,7 +47,7 @@ const MessagingSidebar = ({ onNavClick }) => {
     <div
       className={`h-screen p-4 overflow-y-auto sticky top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
     >
-      {/* Logged-in user info */}
+
       <div className="mb-6 flex items-center p-3 rounded-lg">
         <Avatar
           src={user?.avatarUrl || '/default-avatar.png'}
@@ -85,7 +85,7 @@ const MessagingSidebar = ({ onNavClick }) => {
       ) : conversations.length > 0 ? (
         <ul className="space-y-2">
           {conversations.map((conv) => {
-            console.log('MessagingSidebar - Rendering conversation:', conv);
+            // console.log('MessagingSidebar - Rendering conversation:', conv);
             return (
               <li
                 key={conv.user.id}

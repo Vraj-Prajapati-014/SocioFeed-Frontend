@@ -3,7 +3,6 @@ import { AUTH_CONSTANTS } from '../constants/authConstants';
 import store from '../../../store/store';
 import { refreshTokenAsync } from './authSlice';
 
-// Flag to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -84,7 +83,7 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
         processQueue(refreshError, null);
-        // Let refreshTokenAsync.rejected handle the state update
+       
         return Promise.reject(errorResponse);
       } finally {
         isRefreshing = false;

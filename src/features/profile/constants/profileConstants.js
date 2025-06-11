@@ -22,11 +22,9 @@ const ERROR_SEARCH_HISTORY_NOT_FOUND = 'Search history entry not found';
 const ERROR_UNAUTHORIZED_DELETE = 'You are not authorized to delete this search history entry';
 
 
-// Validation
 const MAX_USERNAME_LENGTH = 50;
 const MAX_BIO_LENGTH = 500;
 
-// Pagination defaults
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;

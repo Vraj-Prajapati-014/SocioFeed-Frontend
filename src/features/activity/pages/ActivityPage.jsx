@@ -86,7 +86,6 @@ const ActivityPage = () => {
     }
   }, [user?.id, refetch]);
 
-  // Flatten and filter duplicates
   const allActivitiesRaw = data?.pages?.flatMap(page => page.activities || []) || [];
   const uniqueActivitiesMap = new Map();
 

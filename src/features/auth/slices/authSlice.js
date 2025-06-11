@@ -114,8 +114,6 @@ export const getMeAsync = createAsyncThunk(
       return res.data.user;
     } catch (err) {
       console.error('getMe error:', err);
-      // If the error is a 401, the interceptor will handle it, so we don't reject here
-      // Only reject for other errors (e.g., 403, 500)
       if (err.status !== 401) {
         dispatch(setAuthChecked(true));
         return rejectWithValue({
@@ -124,8 +122,8 @@ export const getMeAsync = createAsyncThunk(
           suppressToast: !err.data,
         });
       }
-      // If the interceptor fails to refresh the token, it will reject the promise
-      throw err; // Let the interceptor's rejection propagate
+     
+      throw err; 
     }
   }
 );

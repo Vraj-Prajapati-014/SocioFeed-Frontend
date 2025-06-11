@@ -18,7 +18,6 @@ const CreatePost = ({ onSuccess }) => {
   const [editor, setEditor] = useState(null);
   const { handleCreatePost, loading, error } = useCreatePost();
 
-  // Handle image uploads
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     console.log('Selected files:', files); // Debug: Log the selected files
@@ -29,12 +28,10 @@ const CreatePost = ({ onSuccess }) => {
     setMedia([...media, ...files]);
   };
 
-  // Remove an image from the media array
   const handleRemoveImage = (index) => {
     setMedia(media.filter((_, i) => i !== index));
   };
 
-  // Handle form submission
   const handleSubmit = () => {
     handleCreatePost(content, media, () => {
       setContent('');
@@ -43,7 +40,6 @@ const CreatePost = ({ onSuccess }) => {
     });
   };
 
-  // Calculate content length (strip HTML tags for accurate character count)
   const getTextContentLength = (html) => {
     const div = document.createElement('div');
     div.innerHTML = html;
@@ -52,7 +48,6 @@ const CreatePost = ({ onSuccess }) => {
 
   const contentLength = getTextContentLength(content);
 
-  // Update content when editor changes, respecting max length
   const handleEditorUpdate = (html) => {
     const textLength = getTextContentLength(html);
     if (textLength <= POST_CONSTANTS.MAX_CONTENT_LENGTH) {
@@ -104,8 +99,6 @@ const CreatePost = ({ onSuccess }) => {
               {contentLength}/{POST_CONSTANTS.MAX_CONTENT_LENGTH}
             </Typography>
           </Box>
-
-          {/* Image Upload Section */}
           <Box className="flex flex-col space-y-2">
             <Typography
               className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
@@ -123,15 +116,10 @@ const CreatePost = ({ onSuccess }) => {
                   : 'text-gray-600 file:bg-blue-500 file:text-white file:hover:bg-blue-600'
               } file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
-            {/* <Typography
-              variant="caption"
-              className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
-            >
-              Hold Ctrl (Windows) or Command (Mac) to select multiple files
-            </Typography> */}
+         
           </Box>
 
-          {/* Image Previews */}
+       
           {media.length > 0 && (
             <Box className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {media.map((file, index) => (
@@ -153,7 +141,7 @@ const CreatePost = ({ onSuccess }) => {
             </Box>
           )}
 
-          {/* Error Message */}
+        
           {error && contentLength <= POST_CONSTANTS.MAX_CONTENT_LENGTH && (
             <Typography
               variant="body2"
@@ -163,7 +151,6 @@ const CreatePost = ({ onSuccess }) => {
             </Typography>
           )}
 
-          {/* Submit Button (Centered) */}
           <Box className="flex justify-center">
             <Button
               onClick={handleSubmit}

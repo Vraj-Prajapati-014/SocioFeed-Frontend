@@ -26,7 +26,6 @@ const ProfilePage = () => {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch the initial profile data
   const loadProfile = async () => {
 
      if (!id || !isValidUUID(id)) {

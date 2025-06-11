@@ -77,7 +77,6 @@ const PostDetail = () => {
     );
   }
 
-  // Log commentError for debugging
   if (commentError) {
     console.error('PostDetail - Comment creation error:', commentError);
   }

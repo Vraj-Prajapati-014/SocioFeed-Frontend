@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchMessages } from '../services/messagesService';
 
-export const useConversation = (otherUserId) => {
+export const useConversation = otherUserId => {
   return useQuery({
     queryKey: ['messages', otherUserId],
     queryFn: () => fetchMessages(otherUserId),
     enabled: !!otherUserId,
     staleTime: 5 * 60 * 1000,
-    select: (data) =>
-      data.map((message) => ({
+    select: data =>
+      data.map(message => ({
         id: message.id,
         content: message.content,
         createdAt: message.createdAt,

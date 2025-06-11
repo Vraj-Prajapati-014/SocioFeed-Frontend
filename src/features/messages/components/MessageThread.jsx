@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { useParams,useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, TextField, IconButton, Avatar } from '@mui/material';
 import { Send as SendIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import ThemeContext from '../../../utils/context/ThemeContext';
@@ -10,13 +10,17 @@ import { sendMessage, deleteMessage } from '../services/messagesService';
 import { showToast } from '../../../utils/helpers/toast';
 import ProfileHeader from '../../../features/profile/components/ProfileHeader';
 import { fetchProfile } from '../../../features/profile/services/profileService';
-
+ 
 const MessageThread = () => {
   const { id: otherUserId } = useParams();
   const { user, isAuthenticated, isAuthChecked } = useAuth();
   const { theme } = useContext(ThemeContext);
   const { socket, isConnected } = useSocket();
-  const { data: messages = [], isLoading, refetch } = useConversation(isAuthenticated ? otherUserId : null);
+  const {
+    data: messages = [],
+    isLoading,
+    refetch,
+  } = useConversation(isAuthenticated ? otherUserId : null);
   const [newMessage, setNewMessage] = useState('');
   const [messageList, setMessageList] = useState([]);
   const [receiverProfile, setReceiverProfile] = useState(null);
@@ -26,20 +30,18 @@ const MessageThread = () => {
   const typingTimeoutRef = useRef(null);
 
   const isDark = theme === 'dark';
-    const isValidUUID = (otherUserId) => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(otherUserId);
-};
+  const isValidUUID = otherUserId => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(otherUserId);
+  };
   const navigate = useNavigate();
 
-     if (!otherUserId || !isValidUUID(otherUserId)) {
-      console.error('Invalid user ID format:', otherUserId);
-      showToast('Invalid profile ID', 'error');
-      navigate('/not-found', { state: { message: 'Invalid profile ID format.' } });
-      return;
-    }
-
-  // Fetch receiver's profile data and update on follow/unfollow
+  if (!otherUserId || !isValidUUID(otherUserId)) {
+    console.error('Invalid user ID format:', otherUserId);
+    showToast('Invalid profile ID', 'error');
+    navigate('/not-found', { state: { message: 'Invalid profile ID format.' } });
+    return;
+  }
   useEffect(() => {
     const loadReceiverProfile = async () => {
       if (!isAuthenticated || !otherUserId) return;
@@ -56,12 +58,10 @@ const MessageThread = () => {
     loadReceiverProfile();
   }, [otherUserId, isAuthenticated]);
 
-  // Sync messages from useConversation with local state
   useEffect(() => {
     setMessageList(messages);
   }, [messages]);
 
-  // Scroll to the bottom when messages update
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -70,17 +70,16 @@ const MessageThread = () => {
     scrollToBottom();
   }, [messageList, isTyping]);
 
-  // Handle WebSocket events
   useEffect(() => {
     if (!socket || !isAuthenticated || !user) return;
 
-    socket.on('message', (message) => {
+    socket.on('message', message => {
       if (
         (message.sender.id === user.id && message.receiver.id === otherUserId) ||
         (message.sender.id === otherUserId && message.receiver.id === user.id)
       ) {
-        setMessageList((prev) => {
-          if (prev.some((msg) => msg.id === message.id)) {
+        setMessageList(prev => {
+          if (prev.some(msg => msg.id === message.id)) {
             return prev;
           }
           return [
@@ -98,7 +97,7 @@ const MessageThread = () => {
     });
 
     socket.on('messageDeleted', ({ messageId }) => {
-      setMessageList((prev) => prev.filter((msg) => msg.id !== messageId));
+      setMessageList(prev => prev.filter(msg => msg.id !== messageId));
       refetch();
     });
 
@@ -120,7 +119,7 @@ const MessageThread = () => {
       }
     });
 
-    socket.on('error', (error) => {
+    socket.on('error', error => {
       showToast(error.message, 'error');
     });
 
@@ -159,18 +158,8 @@ const MessageThread = () => {
     }
 
     try {
-      const sentMessage = await sendMessage(otherUserId, newMessage);
-      if (
-        !sentMessage ||
-        !sentMessage.id ||
-        !sentMessage.content ||
-        !sentMessage.createdAt ||
-        !sentMessage.sender ||
-        !sentMessage.receiver
-      ) {
-        throw new Error('Invalid message response from server');
-      }
-      socket.emit('sendMessage', { receiverId: otherUserId, content: newMessage }, (response) => {
+   
+      socket.emit('sendMessage', { receiverId: otherUserId, content: newMessage }, response => {
         if (response.status !== 'success') {
           showToast('Failed to broadcast message: ' + response.message, 'error');
         }
@@ -182,7 +171,7 @@ const MessageThread = () => {
     }
   };
 
-  const handleDeleteMessage = async (messageId) => {
+  const handleDeleteMessage = async messageId => {
     if (!isConnected) {
       showToast('Not connected to chat server', 'error');
       return;
@@ -190,19 +179,19 @@ const MessageThread = () => {
 
     try {
       await deleteMessage(messageId);
-      socket.emit('deleteMessage', { messageId }, (response) => {
+      socket.emit('deleteMessage', { messageId }, response => {
         if (response.status !== 'success') {
           showToast('Failed to broadcast message deletion: ' + response.message, 'error');
         }
       });
-      setMessageList((prev) => prev.filter((msg) => msg.id !== messageId));
+      setMessageList(prev => prev.filter(msg => msg.id !== messageId));
       refetch();
     } catch (error) {
       showToast('Failed to delete message: ' + (error.message || 'Unknown error'), 'error');
     }
   };
 
-  const handleProfileUpdate = (updatedProfile) => {
+  const handleProfileUpdate = updatedProfile => {
     setReceiverProfile(updatedProfile);
     setIsReceiverOnline(updatedProfile.isOnline || false);
   };
@@ -230,10 +219,7 @@ const MessageThread = () => {
   return (
     <Box className={`flex flex-col h-screen p-4 ${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg`}>
       <Box className="mb-2">
-        <Typography
-          variant="caption"
-          className={isConnected ? 'text-green-500' : 'text-red-500'}
-        >
+        <Typography variant="caption" className={isConnected ? 'text-green-500' : 'text-red-500'}>
           Chat Server: {isConnected ? 'Connected' : 'Disconnected'}
         </Typography>
       </Box>
@@ -267,7 +253,7 @@ const MessageThread = () => {
             Loading messages...
           </Typography>
         ) : messageList.length > 0 ? (
-          messageList.map((message) => (
+          messageList.map(message => (
             <div
               key={message.id}
               className={`flex mb-4 ${
@@ -287,8 +273,8 @@ const MessageThread = () => {
                     message.sender.id === user.id
                       ? 'bg-blue-500 text-white'
                       : isDark
-                      ? 'bg-gray-700 text-gray-200'
-                      : 'bg-gray-200 text-gray-900'
+                        ? 'bg-gray-700 text-gray-200'
+                        : 'bg-gray-200 text-gray-900'
                   }`}
                 >
                   <Typography variant="body2">{message.content}</Typography>
@@ -342,11 +328,11 @@ const MessageThread = () => {
           variant="outlined"
           placeholder="Type a message..."
           value={newMessage}
-          onChange={(e) => {
+          onChange={e => {
             setNewMessage(e.target.value);
             handleTyping();
           }}
-          onKeyPress={(e) => {
+          onKeyPress={e => {
             if (e.key === 'Enter') handleSendMessage();
           }}
           sx={{

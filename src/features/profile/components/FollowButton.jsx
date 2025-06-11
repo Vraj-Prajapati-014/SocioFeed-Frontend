@@ -7,8 +7,6 @@ const FollowButton = ({ userId, username, isFollowing, followsYou, onFollowChang
   if (isFollowing === null) {
     return null;
   }
-
-  // In SearchResults, if users follow each other, show a Message button instead
   if (showMessageButton && isFollowing && followsYou) {
     return (
       <Button
@@ -21,7 +19,6 @@ const FollowButton = ({ userId, username, isFollowing, followsYou, onFollowChang
     );
   }
 
-  // Determine the button label based on follow relationship
   let buttonLabel;
   if (isFollowing) {
     buttonLabel = 'Unfollow';

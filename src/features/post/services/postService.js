@@ -156,7 +156,7 @@ export const unsavePost = async (postId) => {
   }
 };
 
-export const getPostById = async (postId, page = 1, limit = 10) => { // Removed userId since backend handles hasLiked
+export const getPostById = async (postId, page = 1, limit = 10) => { 
   if (!postId) {
     throw new Error('postId is not defined');
   }

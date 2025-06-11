@@ -13,8 +13,6 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate, hideButtons = f
   const { follow, unfollow } = useFollow();
   const [isLoading, setIsLoading] = useState(false);
   const [isFollowing, setIsFollowing] = useState(profile?.isFollowing || false);
-
-  // Sync local isFollowing state when profile prop changes
   useEffect(() => {
     setIsFollowing(profile?.isFollowing || false);
   }, [profile?.isFollowing]);
@@ -22,7 +20,6 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate, hideButtons = f
   const handleFollowToggle = async () => {
     try {
       setIsLoading(true);
-      // Optimistically update the follow state
       setIsFollowing(prev => !prev);
 
       const refreshProfile = async () => {
@@ -40,7 +37,7 @@ const ProfileHeader = ({ profile, isOwnProfile, onProfileUpdate, hideButtons = f
       }
     } catch (error) {
       console.error('Error toggling follow:', error);
-      // Revert optimistic update on error
+     
       setIsFollowing(prev => !prev);
     } finally {
       setIsLoading(false);

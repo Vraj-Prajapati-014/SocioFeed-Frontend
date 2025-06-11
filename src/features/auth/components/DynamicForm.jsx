@@ -18,7 +18,7 @@ const DynamicForm = ({
   additionalProps = {},
 }) => {
   const config = formConfig[formType] || {};
-  // Memoize initialValues to prevent it from being recreated on every render
+ 
   const initialValues = useMemo(
     () =>
       config.fields?.reduce((acc, field) => {
@@ -33,7 +33,6 @@ const DynamicForm = ({
   const [isFormValid, setIsFormValid] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  // Debug logs for props that might cause re-renders
   useEffect(() => {
     console.log('DynamicForm - Props changed:', { successMessage, errors, formType });
   }, [successMessage, errors, formType]);
@@ -69,15 +68,13 @@ const DynamicForm = ({
   useEffect(() => {
     const validationErrors = validateForm(formType, formData);
     setIsFormValid(Object.keys(validationErrors).length === 0);
-    // Debug log to trace validation
-    console.log('DynamicForm - Validation useEffect:', { formData, validationErrors, isFormValid });
+    // console.log('DynamicForm - Validation useEffect:', { formData, validationErrors, isFormValid });
   }, [formData, formType]);
 
   const handleChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Debug log to trace input changes
-    console.log('DynamicForm - handleChange:', { name, value, hasSubmitted });
+    // console.log('DynamicForm - handleChange:', { name, value, hasSubmitted });
   };
 
   const handleSubmit = e => {

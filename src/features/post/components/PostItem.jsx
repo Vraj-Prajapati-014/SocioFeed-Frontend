@@ -8,6 +8,7 @@ import Card from '../../../components/common/Card/Card';
 import ThemeContext from '../../../utils/context/ThemeContext';
 import useAuth from '../../auth/hooks/useAuth';
 import { usePosts } from '../hooks/usePosts';
+import { formatTimeAgo } from '../../../utils/helpers/timeAgo'; // Import the utility function
 
 const PostItem = ({ post, hideHeader = false }) => {
   const { theme } = React.useContext(ThemeContext);
@@ -61,13 +62,21 @@ const PostItem = ({ post, hideHeader = false }) => {
               className="w-10 h-10 rounded-full mr-3 cursor-pointer"
               onClick={handleProfileClick}
             />
-            <Typography
-              variant="subtitle1"
-              className="font-semibold cursor-pointer"
-              onClick={handleProfileClick}
-            >
-              {post.author.username || 'Unknown User'}
-            </Typography>
+            <Box>
+              <Typography
+                variant="subtitle1"
+                className="font-semibold cursor-pointer"
+                onClick={handleProfileClick}
+              >
+                {post.author.username || 'Unknown User'}
+              </Typography>
+              <Typography
+                variant="caption"
+                className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}
+              >
+                Posted {formatTimeAgo(post.createdAt)}
+              </Typography>
+            </Box>
           </Box>
         )}
         {post.author.id === user?.id && (

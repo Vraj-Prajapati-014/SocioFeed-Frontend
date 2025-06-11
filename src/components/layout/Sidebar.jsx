@@ -84,7 +84,7 @@ const Sidebar = ({ onNavClick }) => {
             <ListItemIcon className={isDark ? 'text-gray-300' : 'text-gray-600'}>{item.icon}</ListItemIcon>
             <ListItemText
               primary={item.text}
-              primaryTypographyProps={{ className: isDark ? 'text-gray-300' : 'text-gray-900' }}
+              
             />
           </ListItem>
         ))}
@@ -94,9 +94,7 @@ const Sidebar = ({ onNavClick }) => {
           <ListItem>
             <ListItemText
               primary="More"
-              primaryTypographyProps={{
-                className: `text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-500'}`,
-              }}
+             
             />
           </ListItem>
           <ListItem>
@@ -120,7 +118,6 @@ const Sidebar = ({ onNavClick }) => {
               <ListItemIcon className={isDark ? 'text-gray-300' : 'text-gray-600'}>{item.icon}</ListItemIcon>
               <ListItemText
                 primary={item.text}
-                primaryTypographyProps={{ className: isDark ? 'text-gray-300' : 'text-gray-900' }}
               />
             </ListItem>
           ))}

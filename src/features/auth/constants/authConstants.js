@@ -13,7 +13,6 @@ const AUTH_ME = '/auth/me';
 const AUTH_REFRESH = '/auth/refresh';
 const AUTH_LOGOUT = '/auth/logout';
 
-// Validation Constants
 const REGEX_USERNAME = /^[a-zA-Z0-9]+$/;
 const REGEX_PASSWORD = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&*!#])[A-Za-z\d@#$%^&*!#]{8,}$/;
 const MIN_PASSWORD_LENGTH = 8;

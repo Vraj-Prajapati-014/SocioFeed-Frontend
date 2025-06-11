@@ -16,7 +16,6 @@ const MessagesList = () => {
 
   const isDark = theme === 'dark';
 
-  // Initialize online statuses from conversations data
   useEffect(() => {
     const initialStatuses = {};
     conversations.forEach((conv) => {
@@ -25,7 +24,7 @@ const MessagesList = () => {
     setOnlineStatuses(initialStatuses);
   }, [conversations]);
 
-  // Listen for userStatus events to update online status
+
   useEffect(() => {
     if (!socket || !isAuthenticated) return;
 

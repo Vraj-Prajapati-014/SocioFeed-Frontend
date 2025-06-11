@@ -7,7 +7,6 @@ import ErrorMessage from '../../../components/ErrorMessage/ErrorMessage';
 import FollowButton from './FollowButton';
 import { useFollow } from '../hook/useFollow';
 
-// Helper function to detect if a string contains HTML tags
 const containsHTML = (str) => /<[a-z][\s\S]*>/i.test(str);
 
 const SearchResults = ({ data, fetchNextPage, hasNextPage, isLoading, isError, error, refetch }) => {
@@ -15,13 +14,13 @@ const SearchResults = ({ data, fetchNextPage, hasNextPage, isLoading, isError, e
   const { follow, unfollow } = useFollow();
   const users = data?.pages?.flatMap(page => page.users) || [];
   const [loadingStates, setLoadingStates] = useState({});
-  const [followError, setFollowError] = useState(null); // Track follow/unfollow errors
+  const [followError, setFollowError] = useState(null); 
 
   const handleFollowToggle = (userId, isFollowing) => async () => {
     try {
       console.log('handleFollowToggle called:', { userId, isFollowing });
       setLoadingStates(prev => ({ ...prev, [userId]: true }));
-      setFollowError(null); // Clear any previous errors
+      setFollowError(null); 
       if (isFollowing) {
         await unfollow(userId);
       } else {

@@ -46,7 +46,7 @@ const FollowerList = ({ userId, username }) => {
                 />
                 <Typography>{follower.username}</Typography>
               </Box>
-              {/* Show MessageButton if already following, otherwise show FollowButton */}
+            
               {follower.isFollowing ? (
                 <MessageButton userId={follower.id} username={follower.username} />
               ) : (

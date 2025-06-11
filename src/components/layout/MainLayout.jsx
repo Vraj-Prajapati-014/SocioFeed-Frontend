@@ -35,12 +35,10 @@ const MainLayout = ({ children }) => {
 
   return (
     <Box className={`flex flex-row min-h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
-      {/* Sidebar (Desktop) */}
       <Box component="nav" className="hidden md:block w-64 flex-shrink-0">
         <Sidebar />
       </Box>
 
-      {/* Mobile Drawer (Main Sidebar) */}
       <Drawer
         variant="temporary"
         open={mobileOpen}
@@ -54,7 +52,6 @@ const MainLayout = ({ children }) => {
         <Sidebar onNavClick={handleDrawerToggle} />
       </Drawer>
 
-      {/* Main Content */}
       <Box
         component="main"
         className={`flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`}
@@ -80,7 +77,6 @@ const MainLayout = ({ children }) => {
         <Box className="max-w-4xl mx-auto">{children}</Box>
       </Box>
 
-      {/* Messaging Sidebar (Desktop) */}
       <Box
         component="aside"
         className="hidden lg:block w-80 flex-shrink-0 border-l border-gray-200 dark:border-gray-700 z-10"
@@ -88,7 +84,7 @@ const MainLayout = ({ children }) => {
         <MessagingSidebar />
       </Box>
 
-      {/* Mobile Drawer (Messaging Sidebar) */}
+
       <Drawer
         variant="temporary"
         anchor="right"

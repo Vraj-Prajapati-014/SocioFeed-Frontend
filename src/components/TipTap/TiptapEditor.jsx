@@ -178,7 +178,6 @@ const TiptapEditor = ({ content, onUpdate, setEditor, isDark }) => {
         </Tooltip>
       </div>
 
-      {/* Editor Content */}
       <EditorContent editor={editor} />
     </div>
   );
